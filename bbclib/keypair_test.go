@@ -3,7 +3,6 @@ package bbclib
 import (
 	"testing"
 	"crypto/sha256"
-	"fmt"
 )
 
 
@@ -23,8 +22,8 @@ func TestGenerateKeypair(t *testing.T) {
 func TestKeyPair_Sign_and_Verify(t *testing.T) {
 	digest := sha256.Sum256([]byte("aaaaaaaaaaa"))
 	digest2 := sha256.Sum256([]byte("bbbbbbbbbbbbb"))
-	fmt.Printf("SHA-256 digest : %x\n", digest)
-	fmt.Printf("SHA-256 digest2: %x\n", digest2)
+	t.Logf("SHA-256 digest : %x\n", digest)
+	t.Logf("SHA-256 digest2: %x\n", digest2)
 
 	for curvetype := 1; curvetype < 3; curvetype++ {
 		keypair := GenerateKeypair(curvetype)
@@ -128,7 +127,7 @@ func TestVerifyBBcSignature(t *testing.T) {
 
 
 func TestKeyPair_ConvertFromPem(t *testing.T) {
-	pem := "-----BEGIN EC PRIVATE KEY-----\nMHQCAQEEIIMVMPKLJqivgRDpRDaWJCOnob6s/+t4MdoFN/8PVkNSoAcGBSuBBAAK\noUQDQgAE/k1ZM/Ker1+N0+Lg5za0sJZeSAAeYwDEWnkgnkCynErs74G/tAnu/lcu\nk8kzAivYm8mitIpJJw1OdjCDJI457g==\n-----END EC PRIVATE KEY-----\n"
+	pem := "-----BEGIN EC PRIVATE KEY-----\nMHQCAQEEIIMVMPKLJqivgRDpRDaWJCOnob6s/+t4MdoFN/8PVkNSoAcGBSuBBAAK\noUQDQgAE/k1ZM/Ker1+N0+Lg5za0sJZeSAAeYwDEWnkgnkCynErs74G/tAnu/lcu\nk8kzAivYm8mitIpJJw1OdjCDJI457g==\n-----END EC PRIVATE KEY-----"
 	keypair := KeyPair{Curvetype: 1}
 	keypair.ConvertFromPem(pem)
 	t.Logf("keypair: %v", keypair)

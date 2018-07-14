@@ -108,10 +108,8 @@ func (p *BBcTransaction) Digest() []byte {
 	if err != nil {
 		return nil
 	}
-	fmt.Printf("DIGESTtarget: %x\n", txdata)
 	var dt map[string]interface{}
 	bson.Unmarshal(txdata, &dt)
-	fmt.Printf("DIGESTtarget(content): %v\n", dt)
 
 	digest := sha256.Sum256(txdata)
 	p.Transaction_id = digest[:p.Tx_base.Header.Id_length]
@@ -136,7 +134,6 @@ func (p *BBcTransaction) Serialize(forId bool) ([]byte, error) {
 				return nil, err
 			}
 			coreDigest := sha256.Sum256(txCore)
-			fmt.Printf("coreDigest: %x\n", coreDigest)
 
 			return bson.Marshal(&BBcTransactionForId {
 				Tx_base: coreDigest[:],

@@ -5,7 +5,7 @@ import (
     "time"
     "encoding/hex"
     "gopkg.in/mgo.v2/bson"
-    "fmt"
+	"reflect"
 )
 
 var (
@@ -13,49 +13,92 @@ var (
 )
 
 func TestBBcTransactionSerialize(t *testing.T) {
-    obj := BBcTransaction{}
-    obj.Tx_base.Header.Version = 1
-    obj.Tx_base.Header.Timestamp = (int)(time.Now().Unix())
-    obj.Tx_base.Header.Id_length = 32
-    obj.Format_type = FORMAT_BSON
-    obj.Digest()
-    fmt.Println(obj.Jsonify())
-    fmt.Println("--------------------------------------")
+	t.Run("simple creation", func(t *testing.T) {
+		obj := BBcTransaction{}
+		obj.Tx_base.Header.Version = 1
+		obj.Tx_base.Header.Timestamp = (int)(time.Now().Unix())
+		obj.Tx_base.Header.Id_length = 32
+		obj.Format_type = FORMAT_BSON
+		obj.Digest()
 
-    dat, err := obj.Serialize(false)
-    if err != nil {
-        t.Fatalf("failed to serialize transaction object (%v)", err)
-    }
-    t.Log("--------------------------------------")
-    t.Logf("transaction_id: %x", obj.Transaction_id)
-    t.Logf("serialize: %x", dat)
+		dat, err := obj.Serialize(false)
+		if err != nil {
+			t.Fatalf("failed to serialize transaction object (%v)", err)
+		}
+		t.Logf("transaction_id: %x", obj.Transaction_id)
+		t.Logf("serialize: %x", dat)
+		t.Log("--------------------------------------")
 
+		obj1, err := BBcTransactionDeserialize(dat)
+		if err != nil {
+			t.Fatalf("failed to deserialize transaction object (%v)", err)
+		}
+		t.Logf("deserialized: %v", obj1)
 
-    obj1, err := BBcTransactionDeserialize(dat)
-    if err != nil {
-        t.Fatalf("failed to deserialize transaction object (%v)", err)
-    }
-    t.Logf("deserialized: %v", obj1)
-    t.Log("=================================")
+		if obj1.Tx_base.Header.Timestamp != obj.Tx_base.Header.Timestamp {
+			t.Fatalf("failed to recover transaction")
+		}
+	})
 
-    dat2, err := hex.DecodeString(hexdat)
-    var out map[string]interface{}
-    bson.Unmarshal(dat2[2:], &out)
-    t.Logf("direct unmarshal: %v", out)
+	t.Run("create from hex string", func(t *testing.T) {
+		dat2, err := hex.DecodeString(hexdat)
+		var out map[string]interface{}
+		bson.Unmarshal(dat2[2:], &out)
+		t.Logf("direct unmarshal: %v", out)
 
-    obj2, err := BBcTransactionDeserialize(dat2)
-    if err != nil {
-        t.Fatalf("failed to deserialize transaction object (%v)", err)
-    }
-    t.Logf("deserialized: %v", obj2)
-    t.Logf("txid: %x", obj2.Transaction_id)
+		obj2, err := BBcTransactionDeserialize(dat2)
+		if err != nil {
+			t.Fatalf("failed to deserialize transaction object (%v)", err)
+		}
+		t.Logf("deserialized: %v", obj2)
+		t.Logf("txid: %x", obj2.Transaction_id)
 
-    dat3, err := obj2.Serialize(false)
-    t.Logf("serialize for id: %x", dat3)
+		dat3, err := obj2.Serialize(false)
+		t.Logf("serialize for id: %x", dat3)
 
-    t.Log(obj2.Stringer())
-    if result, i := obj2.VerifyAll(); !result {
-        t.Fatalf("Verify failed at %d", i)
-    }
-    t.Log("Vefiry succeeded")
+		if ! reflect.DeepEqual(dat2, dat3) {
+			t.Fatalf("failed to recover transaction")
+		}
+
+		t.Log(obj2.Stringer())
+		if result, i := obj2.VerifyAll(); !result {
+			t.Fatalf("Verify failed at %d", i)
+		}
+		t.Log("Vefiry succeeded")
+	})
+}
+
+func TestBBcTransaction_sign_verify(t *testing.T) {
+	transaction_data_str := "0100eb020000037472616e73616374696f6e5f6261736500cb0100000368656164657200300000001076657273696f6e00010000001074696d657374616d7000fcee495b1069645f6c656e677468000800000000046576656e7473000500000000047265666572656e6365730005000000000472656c6174696f6e730008010000033000000100000561737365745f67726f75705f69640008000000009cbc1c68ea54f55604706f696e7465727300340000000330002c000000057472616e73616374696f6e5f69640008000000004c80a4b56da6c9010a61737365745f696400000003617373657400990000000561737365745f6964000800000000073b10fc76c8e12305757365725f6964000800000000d6f802cf80c482bc056e6f6e6365000800000000a27eefd75f697a8b1061737365745f66696c655f73697a6500000000000a61737365745f66696c655f646967657374001061737365745f626f64795f73697a6500050000000561737365745f626f64790005000000006363636363000000037769746e657373005400000004757365725f69647300250000000530000800000000d6f802cf80c482bc05310008000000002b15014fa42be93e00047369675f696e6469636573001300000010300000000000103100010000000000000a63726f73735f72656600047369676e61747572657300f2000000033000d4000000106b65795f747970650002000000107075626b65795f6c656e0008020000057075626b65790041000000000427dc8c0cf4dff8999eb063e75ca358736d5837c96fa8df841deda56cbc5ec47dd3ca96118ee3606f1a31c0179c076800bd7d714899614c65406d7f6d83b74aef107369676e61747572655f6c656e0000020000057369676e6174757265004000000000f67cc7adf8ade8e13f678dc1661c0a84348b6abc85be7ce112d1fc1c10f8018a4b9a09e460fcae3afea59789bcbde521f315771c565c3c140420739c972223590003310013000000106b65795f747970650000000000000000"
+	//user_id_str := "27755d434b7713a6f7cb6bfd62663f8d025073dd1cf3e1ec94b051aaf05c1464"
+
+	keypair := GenerateKeypair(2)
+	transaction_data, _ := hex.DecodeString(transaction_data_str)
+	txobj, _ := BBcTransactionDeserialize(transaction_data)
+	t.Log(txobj.Stringer())
+	digest := txobj.Digest()
+
+	sig := BBcSignature{
+		Format_type: FORMAT_BSON,
+		Key_type:    2,
+		Signature:   keypair.Sign(digest[:]),
+		Pubkey:      keypair.Pubkey,
+	}
+	txobj.Signatures[1] = sig
+	datNew, err := txobj.Serialize(false)
+	if err != nil {
+		t.Fatalf("failed to serialize transaction object (%v)", err)
+	}
+	t.Logf("txid: %x", txobj.Transaction_id)
+	t.Logf("serialized tx: %x\n", datNew)
+
+	txobj2, err := BBcTransactionDeserialize(datNew)
+	if err != nil {
+		t.Fatalf("failed to deserialize transaction object (%v)", err)
+	}
+	t.Log(txobj2.Stringer())
+	if result, i := txobj2.VerifyAll(); !result {
+		t.Fatalf("Verify failed at %d", i)
+	}
+	t.Log("Vefiry succeeded")
 }
