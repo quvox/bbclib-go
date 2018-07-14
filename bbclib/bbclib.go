@@ -119,9 +119,9 @@ func (p *BBcTransaction) Digest() []byte {
 }
 
 
-func (p *BBcTransaction) Jsonify() {
+func (p *BBcTransaction) Jsonify() string {
 	dat, _ := json.Marshal(p)
-	fmt.Println(*(*string)(unsafe.Pointer(&dat)))
+	return *(*string)(unsafe.Pointer(&dat))
 }
 
 
@@ -156,21 +156,6 @@ func (p *BBcTransaction) Serialize(forId bool) ([]byte, error) {
 
 
 func (p *BBcTransaction) serializeObj(forId bool) ([]byte, error) {
-	//TODO: ここがだめ。
-	/*
-	tx_base = {
-		"header": {
-		"version": self.version,
-		"timestamp": self.timestamp,
-		"id_length": self.id_length
-		},
-		"events": [evt.serialize() for evt in self.events],   <-- ここ
-		"references": [refe.serialize() for refe in self.references], <--
-		"relations": [rtn.serialize() for rtn in self.relations], <--
-		"witness": witness,
-	}
-	*/
-
 	if forId {
 		dat, err := bson.Marshal((*BBcTransactionBase)(unsafe.Pointer(&p.Tx_base)))
 		return dat, err
@@ -246,12 +231,22 @@ func bbcTransactionDeserializeObj(format_type int, dat []byte) (*BBcTransaction,
 	if obj.Signatures != nil {
 		for i := range obj.Signatures {
 			obj.Signatures[i].Format_type = format_type
-			if obj.Signatures[i].Signature != nil {
-				obj.Signatures[i].NotInitialized = 1
-			}
 		}
 	}
 
 	return &obj, nil
 }
 
+
+func (p *BBcTransaction) VerifyAll() (bool, int) {
+	digest := p.Digest()
+	for i := range p.Signatures {
+		if p.Signatures[i].Key_type == 0 {
+			continue
+		}
+		if ret := VerifyBBcSignature(digest, &p.Signatures[i]); ! ret {
+			return false, i
+		}
+	}
+	return true, -1
+}

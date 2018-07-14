@@ -9,7 +9,6 @@ import (
 type (
 	BBcSignature struct {
 		Format_type		int			`bson:"-" json:"-"`
-		NotInitialized	int			`bson:"-" json:"-"`
 		Key_type 		int			`bson:"key_type" json:"key_type"`
 		Signature 		[]byte		`bson:"signature" json:"signature"`
 		Signature_len 	int			`bson:"signature_len" json:"signature_len"`
@@ -20,7 +19,7 @@ type (
 
 
 func (p *BBcSignature) Stringer() string {
-	if p.NotInitialized == 0 {
+	if p.Key_type == 0 {
 		return "  Not initialized\n"
 	}
 	ret :=  fmt.Sprintf("  key_type: %d\n", p.Key_type)
@@ -71,9 +70,6 @@ func bbcSignatureDeserializeObj(format_type int, dat []byte) (BBcSignature, erro
 		}
 	}
 	err := bson.Unmarshal(dat, &obj)
-	if err == nil {
-		obj.NotInitialized = 1
-	}
 	return obj, err
 }
 

@@ -19,7 +19,7 @@ func TestBBcTransactionSerialize(t *testing.T) {
     obj.Tx_base.Header.Id_length = 32
     obj.Format_type = FORMAT_BSON
     obj.Digest()
-    obj.Jsonify()
+    fmt.Println(obj.Jsonify())
     fmt.Println("--------------------------------------")
 
     dat, err := obj.Serialize(false)
@@ -54,4 +54,8 @@ func TestBBcTransactionSerialize(t *testing.T) {
     t.Logf("serialize for id: %x", dat3)
 
     t.Log(obj2.Stringer())
+    if result, i := obj2.VerifyAll(); !result {
+        t.Fatalf("Verify failed at %d", i)
+    }
+    t.Log("Vefiry succeeded")
 }

@@ -29,12 +29,24 @@ func GenerateKeypair(curvetype int) KeyPair {
 }
 
 
-func (k KeyPair) Sign(digest [32]byte) []byte {
+func (k *KeyPair) ConvertFromPem(pem string) {
+	pubkey := make([]byte, 100)
 	privkey := make([]byte, 100)
+	pemstr := ([]byte)(pem)
+	var len_pubkey, len_privkey C.int
+	C.convert_from_pem(C.int(k.Curvetype), (*C.char)(unsafe.Pointer(&pemstr[0])), (C.uint8_t)(0),
+		&len_pubkey, (*C.uint8_t)(unsafe.Pointer(&pubkey[0])),
+		&len_privkey, (*C.uint8_t)(unsafe.Pointer(&privkey[0])))
+	k.Pubkey = pubkey[:len_pubkey]
+	k.Privkey = pubkey[:len_privkey]
+}
+
+
+func (k *KeyPair) Sign(digest []byte) []byte {
 	sig_r := make([]byte, 100)
 	sig_s := make([]byte, 100)
 	var len_sig_r, len_sig_s C.uint
-	C.sign(C.int(k.Curvetype), C.int(32), (*C.uint8_t)(unsafe.Pointer(&privkey[0])),
+	C.sign(C.int(k.Curvetype), C.int(len(k.Privkey)), (*C.uint8_t)(unsafe.Pointer(&k.Privkey[0])),
 		   C.int(len(digest)), (*C.uint8_t)(unsafe.Pointer(&digest[0])),
 		   (*C.uint8_t)(unsafe.Pointer(&sig_r[0])), (*C.uint8_t)(unsafe.Pointer(&sig_s[0])),
 		   (*C.uint)(&len_sig_r), (*C.uint)(&len_sig_s))
@@ -56,31 +68,21 @@ func (k KeyPair) Sign(digest [32]byte) []byte {
 	sig := make([]byte, len_sig_r+len_sig_s)
 	sig = append(sig_r[:32], sig_s[:32]...)
 
-	return sig[:64]
+	return sig
 }
 
 
-func (k KeyPair) Verify(digest [32]byte, sig []byte) bool {
-	result := C.verify(C.int(k.Curvetype), C.int(len(k.Pubkey)), (*C.uint8_t)(unsafe.Pointer(&(k.Pubkey))),
+func (k *KeyPair) Verify(digest []byte, sig []byte) bool {
+	result := C.verify(C.int(k.Curvetype), C.int(len(k.Pubkey)), (*C.uint8_t)(unsafe.Pointer(&(k.Pubkey[0]))),
 		               C.int(len(digest)), (*C.uint8_t)(unsafe.Pointer(&digest[0])),
 			           C.int(len(sig)), (*C.uint8_t)(unsafe.Pointer(&sig[0])))
 	return result == 1
 }
 
 
-func (k KeyPair) ConvertFromPem(pem string) {
-	var len_pubkey, len_privkey C.int
-	C.convert_from_pem(C.int(k.Curvetype), (*C.char)(unsafe.Pointer(&pem)), (C.uint8_t)(0),
-					   &len_pubkey, (*C.uint8_t)(unsafe.Pointer(&(k.Pubkey))),
-					   	&len_privkey, (*C.uint8_t)(unsafe.Pointer(&(k.Privkey))))
-}
-
-
-func VerifyBBcSignature(digest [32]byte, sig BBcSignature) bool {
-	pubkey := sig.Pubkey
-	signature := sig.Signature
-	result := C.verify(C.int(sig.Key_type), C.int(len(pubkey)), (*C.uint8_t)(unsafe.Pointer(&(pubkey))),
+func VerifyBBcSignature(digest []byte, sig *BBcSignature) bool {
+	result := C.verify(C.int(sig.Key_type), C.int(len(sig.Pubkey)), (*C.uint8_t)(unsafe.Pointer(&sig.Pubkey[0])),
 		C.int(len(digest)), (*C.uint8_t)(unsafe.Pointer(&digest[0])),
-		C.int(len(signature)), (*C.uint8_t)(unsafe.Pointer(&signature[0])))
+		C.int(len(sig.Signature)), (*C.uint8_t)(unsafe.Pointer(&sig.Signature[0])))
 	return result == 1
 }
