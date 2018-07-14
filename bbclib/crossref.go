@@ -46,22 +46,15 @@ func (p *BBcCrossRef) serializeObj() ([]byte, error) {
 
 func BBcCrossRefDeserialize(format_type int, dat []byte) (BBcCrossRef, error) {
 	if format_type != FORMAT_BINARY {
-		return bbcCrossRefDeserializeObj(format_type, dat)
+		return bbcCrossRefDeserializeObj(dat)
 	}
 	obj := BBcCrossRef{}
 	return obj, errors.New("not support the format")
 }
 
 
-func bbcCrossRefDeserializeObj(format_type int, dat []byte) (BBcCrossRef, error) {
+func bbcCrossRefDeserializeObj(dat []byte) (BBcCrossRef, error) {
 	obj := BBcCrossRef{}
-	if format_type == FORMAT_BSON_COMPRESS_ZLIB || format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		if dat2, err := ZlibDecompress(&dat); err != nil {
-			return obj, errors.New("failed to deserialize")
-		} else {
-			dat = dat2
-		}
-	}
 	err := bson.Unmarshal(dat, &obj)
 	return obj, err
 }

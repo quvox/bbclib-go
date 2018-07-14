@@ -8,6 +8,7 @@ import (
 	"unsafe"
 	"encoding/json"
 	"fmt"
+	"reflect"
 )
 
 type (
@@ -33,6 +34,7 @@ type (
 	BBcTransaction struct {
 		Format_type 	int					`bson:"-" json:"-"`
 		Transaction_id	[]byte				`bson:"-" json:"-"`
+		SigIndices		[][]byte			`bson:"-" json:"-"`
 		Tx_base			BBcTransactionBase	`bson:"transaction_base" json:"transaction_base"`
 		Crossref		*BBcCrossRef		`bson:"cross_ref" json:"cross_ref"`
 		Signatures 		[]BBcSignature		`bson:"signatures" json:"signatures"`
@@ -183,15 +185,20 @@ func BBcTransactionDeserialize(dat []byte) (*BBcTransaction, error) {
 func bbcTransactionDeserializeObj(format_type int, dat []byte) (*BBcTransaction, error) {
 	var obj BBcTransaction
 	if format_type == FORMAT_BSON_COMPRESS_ZLIB || format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		if dat2, err := ZlibDecompress(&dat); err != nil {
+		if dat2, err := ZlibDecompress(dat); err != nil {
 			return nil, errors.New("failed to deserialize")
 		} else {
-			dat = dat2
+			fmt.Println(dat2)
+			err := bson.Unmarshal(dat2, &obj)
+			if err != nil {
+				return nil, err
+			}
 		}
-	}
-	err := bson.Unmarshal(dat, &obj)
-	if err != nil {
-		return nil, err
+	} else {
+		err := bson.Unmarshal(dat, &obj)
+		if err != nil {
+			return nil, err
+		}
 	}
 	obj.Format_type = format_type
 	idLength := obj.Tx_base.Header.Id_length
@@ -225,6 +232,13 @@ func bbcTransactionDeserializeObj(format_type int, dat []byte) (*BBcTransaction,
 			}
 		}
 	}
+
+	if obj.Tx_base.Witness != nil {
+		for i := range obj.Tx_base.Witness.User_ids {
+			obj.SigIndices = append(obj.SigIndices, obj.Tx_base.Witness.User_ids[i])
+		}
+	}
+
 	if obj.Signatures != nil {
 		for i := range obj.Signatures {
 			obj.Signatures[i].Format_type = format_type
@@ -232,6 +246,24 @@ func bbcTransactionDeserializeObj(format_type int, dat []byte) (*BBcTransaction,
 	}
 
 	return &obj, nil
+}
+
+
+func (p *BBcTransaction) AddSignature(uid []byte, keypair KeyPair, digest []byte) {
+	sig := BBcSignature{
+		Format_type: p.Format_type,
+		Key_type:    keypair.Curvetype,
+		Signature:   keypair.Sign(digest[:]),
+		Pubkey:      keypair.Pubkey,
+	}
+	for i := range p.SigIndices {
+		if reflect.DeepEqual(p.SigIndices[i], uid) {
+			p.Signatures[i] = sig
+			return
+		}
+	}
+	p.SigIndices = append(p.SigIndices, uid)
+	p.Signatures = append(p.Signatures, sig)
 }
 
 

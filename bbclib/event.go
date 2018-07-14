@@ -82,27 +82,3 @@ func (p *BBcEvent) serializeObj() ([]byte, error) {
 	}
 	return dat, err
 }
-
-
-func BBcEventDeserialize(format_type int, dat []byte) (BBcEvent, error) {
-	if format_type != FORMAT_BINARY {
-		return bbcEventDeserializeObj(format_type, dat)
-	}
-	obj := BBcEvent{}
-	return obj, errors.New("not support the format")
-}
-
-
-func bbcEventDeserializeObj(format_type int, dat []byte) (BBcEvent, error) {
-	obj := BBcEvent{}
-	if format_type == FORMAT_BSON_COMPRESS_ZLIB || format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		if dat2, err := ZlibDecompress(&dat); err != nil {
-			return obj, errors.New("failed to deserialize")
-		} else {
-			dat = dat2
-		}
-	}
-	err := bson.Unmarshal(dat, &obj)
-	return obj, err
-}
-

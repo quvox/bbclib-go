@@ -3,21 +3,28 @@ package bbclib
 import (
 	"bytes"
 	"compress/zlib"
+	"io"
 )
 
 func ZlibCompress(dat *[]byte) []byte {
-	var b bytes.Buffer
-	w := zlib.NewWriter(&b)
-	w.Write(*dat)
-	w.Close()
-	return b.Bytes()
+	var dstbbuf bytes.Buffer
+	zlibwriter := zlib.NewWriter(&dstbbuf)
+	zlibwriter.Write(*dat)
+	zlibwriter.Close()
+	return dstbbuf.Bytes()
 }
 
 
-func ZlibDecompress(dat *[]byte) ([]byte, error) {
-	var ret []byte
-	bb := bytes.NewReader(*dat)
-	r, err := zlib.NewReader(bb)
-	r.Read(ret)
-	return ret, err
+func ZlibDecompress(dat []byte) ([]byte, error) {
+	var srcbuf bytes.Buffer
+	var dstbuf bytes.Buffer
+	srcbuf.Write(dat)
+	zlibreader, err := zlib.NewReader(&srcbuf)
+	if err != nil {
+		return nil, err
+	}
+	io.Copy(&dstbuf, zlibreader)
+	zlibreader.Close()
+
+	return dstbuf.Bytes(), nil
 }

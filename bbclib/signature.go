@@ -19,7 +19,7 @@ type (
 
 
 func (p *BBcSignature) Stringer() string {
-	if p.Key_type == 0 {
+	if p.Key_type == KeyType_NOT_INITIALIZED {
 		return "  Not initialized\n"
 	}
 	ret :=  fmt.Sprintf("  key_type: %d\n", p.Key_type)
@@ -53,22 +53,15 @@ func (p *BBcSignature) serializeObj() ([]byte, error) {
 
 func BBcSignatureDeserialize(format_type int, dat []byte) (BBcSignature, error) {
 	if format_type != FORMAT_BINARY {
-		return bbcSignatureDeserializeObj(format_type, dat)
+		return bbcSignatureDeserializeObj(dat)
 	}
 	obj := BBcSignature{}
 	return obj, errors.New("not support the format")
 }
 
 
-func bbcSignatureDeserializeObj(format_type int, dat []byte) (BBcSignature, error) {
+func bbcSignatureDeserializeObj(dat []byte) (BBcSignature, error) {
 	obj := BBcSignature{}
-	if format_type == FORMAT_BSON_COMPRESS_ZLIB || format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		if dat2, err := ZlibDecompress(&dat); err != nil {
-			return obj, errors.New("failed to deserialize")
-		} else {
-			dat = dat2
-		}
-	}
 	err := bson.Unmarshal(dat, &obj)
 	return obj, err
 }

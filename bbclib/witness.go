@@ -56,27 +56,3 @@ func (p *BBcWitness) serializeObj() ([]byte, error) {
 	}
 	return dat, err
 }
-
-
-func BBcWitnessDeserialize(format_type int, dat []byte) (BBcWitness, error) {
-	if format_type != FORMAT_BINARY {
-		return bbcWitnessDeserializeObj(format_type, dat)
-	}
-	obj := BBcWitness{}
-	return obj, errors.New("not support the format")
-}
-
-
-func bbcWitnessDeserializeObj(format_type int, dat []byte) (BBcWitness, error) {
-	obj := BBcWitness{}
-	if format_type == FORMAT_BSON_COMPRESS_ZLIB || format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		if dat2, err := ZlibDecompress(&dat); err != nil {
-			return obj, errors.New("failed to deserialize")
-		} else {
-			dat = dat2
-		}
-	}
-	err := bson.Unmarshal(dat, &obj)
-	return obj, err
-}
-

@@ -53,22 +53,15 @@ func (p *BBcRelation) serializeObj() ([]byte, error) {
 
 func BBcRelationDeserialize(format_type int, dat []byte) (BBcRelation, error) {
 	if format_type != FORMAT_BINARY {
-		return bbcRelationDeserializeObj(format_type, dat)
+		return bbcRelationDeserializeObj(dat)
 	}
 	obj := BBcRelation{}
 	return obj, errors.New("not support the format")
 }
 
 
-func bbcRelationDeserializeObj(format_type int, dat []byte) (BBcRelation, error) {
+func bbcRelationDeserializeObj(dat []byte) (BBcRelation, error) {
 	obj := BBcRelation{}
-	if format_type == FORMAT_BSON_COMPRESS_ZLIB || format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		if dat2, err := ZlibDecompress(&dat); err != nil {
-			return obj, errors.New("failed to deserialize")
-		} else {
-			dat = dat2
-		}
-	}
 	err := bson.Unmarshal(dat, &obj)
 	return obj, err
 }
