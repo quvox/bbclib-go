@@ -14,7 +14,17 @@ Golang implementation of bbclib.py in beyond-blockchain/bbc1
 * libbbcsig.so used in bbc1 is needed
 
 
-# install
+## Install
 
-TBD..
+For linux/mac
+```
+sh prepare.sh
+```
+
+For Amazon Lambda, you need docker and do the following:
+```
+sh prepare.sh aws
+```
+
+After finishing prepare.sh script, you will find libbbcsig.so in bbclib/.
 
