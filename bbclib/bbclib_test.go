@@ -1,130 +1,154 @@
 package bbclib
 
 import (
-    "testing"
-    "time"
-    "encoding/hex"
-    "gopkg.in/mgo.v2/bson"
-	"reflect"
+	"bytes"
+	"encoding/hex"
+	"testing"
+	"time"
 )
 
 var (
-    hexdat = "010009040000037472616e73616374696f6e5f62617365006c0300000368656164657200300000001076657273696f6e00010000001074696d657374616d7000c06a495b1069645f6c656e677468000800000000046576656e747300d7020000033000660100000561737365745f67726f75705f6964000800000000b34582b9d4640589047265666572656e63655f696e6469636573000500000000046d616e6461746f72795f617070726f766572730015000000053000080000000061cabbd2d0068eb200106f7074696f6e5f617070726f7665725f6e756d5f6e756d657261746f720000000000106f7074696f6e5f617070726f7665725f6e756d5f64656e6f6d696e61746f720000000000046f7074696f6e5f617070726f76657273000500000000036173736574009c0000000561737365745f69640008000000002ccab0b5c0477b7305757365725f696400080000000061cabbd2d0068eb2056e6f6e6365000800000000ea5899f3acc513321061737365745f66696c655f73697a6500000000000a61737365745f66696c655f646967657374001061737365745f626f64795f73697a6500080000000561737365745f626f647900080000000031323334353637380000033100660100000561737365745f67726f75705f6964000800000000b34582b9d4640589047265666572656e63655f696e6469636573000500000000046d616e6461746f72795f617070726f766572730015000000053000080000000061cabbd2d0068eb200106f7074696f6e5f617070726f7665725f6e756d5f6e756d657261746f720000000000106f7074696f6e5f617070726f7665725f6e756d5f64656e6f6d696e61746f720000000000046f7074696f6e5f617070726f76657273000500000000036173736574009c0000000561737365745f69640008000000007790ac9d30e5e7b605757365725f696400080000000061cabbd2d0068eb2056e6f6e6365000800000000854ca7f3991867b41061737365745f66696c655f73697a6500070000000561737365745f66696c655f6469676573740008000000007d1a54127b2225021061737365745f626f64795f73697a6500000000000a61737365745f626f647900000000047265666572656e6365730005000000000472656c6174696f6e73000500000000037769746e657373002600000004757365725f696473000500000000047369675f696e646963657300050000000000000363726f73735f726566006a00000005646f6d61696e5f696400200000000023e4473d7119dbc5cdef6c3acb8251ff4b21b6598d36c4a6ed0a780f1296ed74057472616e73616374696f6e5f6964002000000000545e5e45e2af451ff4827efcc72183992c15261620852b0c0229da29d3b9d6f500047369676e61747572657300050000000000"
+	idLength = 32
+	txdataType0 = "000001000000cbeefc5b000000002000000000000100a100000020009cfa77b06efc3528c051f42d47a84e71d0f75056ae4542146b3f73c18169c9d000007900000020007a7374f7d35f5eb37a42b4551c0d98268988bdfd3084bccbdfd65c587c596d4620001e5f3cf4588e64234d88fed3e87f0fff3580c03a1dab2f55d42ec004c04cb1692000fc982c9463a8e29ffd46331fae974cb43d8f76822c3e9b92f230ad95138061e70000000000000b007472616e73666572726564010026000000010020001e5f3cf4588e64234d88fed3e87f0fff3580c03a1dab2f55d42ec004c04cb1690000000001008d0000000200000008020000042159bcbd47bcb8cb8183f6a07b06d212e3f21807d534278d7b7dbb1b93f1f0b5b956a80a0032cb411712d8bbd3beefe1a71c52866681676c30be7e6f7c556b1b000200002d426b1c5cca56e47eef0162604e00203bc4b21a544c4ce35ec67a3aee81d798f6201be300fe4a10aea61b625a07020a19e9bfa786c0aaf560c950b8e0bcec13"
+	txdataType1 = "1000789c6364606038fdee4f3490625000110c8c0c0bc1ec39bfca37e4fd31d53810f845d77d855fe185ef0161eb5c9d44b2ed8b0f36669ebcc0c050095657555cf2fd727cdce62aa72da132bc33d43a3bf6fe3568d973fafeb598889ac85c370506b9789b2f117d29cabe1dff2ebfa8e7ff6fda70c04a76b57ee815bd032c077c36662a30fc99a1332579c5a3f97fdd8ce5d74df7d962db5fd6a463377bd22783b553851b129f831dc6c0cd50529498579c965a54949ac2c8a006762c61e3219eea05924c40cc0124581423f7ec75dfb3e37463f3b705d56c97841e7f9260bf6aa2de5b5dbb5b7af2c70f5b7786ade062303aed282e7463f7e57def1f2e97096a4b6b4ccf31d857975f139a2d0d3249d7295b26e654d893baf78c49097e0c0ad647364985f8f83c8e3b5665f5aef1fa8c6f0ad28f19fe7909ac5b269d14c5cec425f972fff2b603abbe269c0cd8f160cf1b61008dcf976f"
+	assetGroupIdInTx = "9cfa77b06efc3528c051f42d47a84e71d0f75056ae4542146b3f73c18169c9d0"
+	txid = "6d187c7ff825e46d4c0f258d08264a070f0909314c854671a15d8dbf6c983f19"
 )
 
-func TestBBcTransactionSerialize(t *testing.T) {
-	t.Run("simple creation", func(t *testing.T) {
-		obj := BBcTransaction{}
-		obj.Tx_base.Header.Version = 1
-		obj.Tx_base.Header.Timestamp = (int)(time.Now().Unix())
-		obj.Tx_base.Header.Id_length = 32
-		obj.Format_type = FORMAT_BSON
-		obj.Digest()
 
-		dat, err := obj.Serialize(false)
+
+func TestBBcLibSerializeDeserialze(t *testing.T) {
+	txobj := BBcTransaction{Version:1, Timestamp:time.Now().UnixNano(), IdLength:idLength}
+	t.Run("simple serialize and deserialize", func(t *testing.T) {
+		keypair := GenerateKeypair(KeyType_ECDSA_P256v1, defaultCompressionMode)
+		rtn := BBcRelation{}
+		txobj.AddRelation(&rtn)
+		wit := BBcWitness{}
+		txobj.AddWitness(&wit)
+		crs := BBcCrossRef{}
+		txobj.AddCrossRef(&crs)
+
+		ast := BBcAsset{}
+		ptr1 := BBcPointer{}
+		ptr2 := BBcPointer{}
+
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", idLength)
+		rtn.Add(&assetgroup, &ast)
+		rtn.AddPointer(&ptr1)
+		rtn.AddPointer(&ptr2)
+
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", idLength)
+		ast.Add(&u1)
+		ast.AddBodyString("testString12345XXX")
+
+		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", idLength)
+		txid2 := GetIdentifierWithTimestamp("asdfauflkajethb;:a", idLength)
+		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", idLength)
+		ptr1.Add(&txid1, &asid1)
+		ptr2.Add(&txid2, nil)
+
+		wit.AddWitness(&u1)
+		u2 := GetIdentifierWithTimestamp("user2", idLength)
+		wit.AddWitness(&u2)
+
+		dom := GetIdentifier("dummy domain", idLength)
+		dummyTxid := GetIdentifierWithTimestamp("dummytxid", idLength)
+		crs.Add(&dom, &dummyTxid)
+
+		sig := BBcSignature{}
+		sig.SetPublicKeyByKeypair(&keypair)
+		signature, err := txobj.Sign(&keypair)
+		sig.SetSignature(&signature)
+		wit.AddSignature(&u1, &sig)
+
+		sig2 := BBcSignature{}
+		sig2.SetPublicKeyByKeypair(&keypair)
+		signature2, err := txobj.Sign(&keypair)
+		sig2.SetSignature(&signature2)
+		wit.AddSignature(&u2, &sig2)
+
+		dat, err := Serialize(&txobj, 0)
 		if err != nil {
 			t.Fatalf("failed to serialize transaction object (%v)", err)
 		}
-		t.Logf("transaction_id: %x", obj.Transaction_id)
-		t.Logf("serialize: %x", dat)
+		t.Logf("Serialized data: %x", dat)
+		t.Logf("Serialized data size: %d", len(dat))
+
+		txobj2, err := Deserialize(dat)
+		if err != nil {
+			t.Fatalf("failed to deserialize transaction data (%v)", err)
+		}
+		t.Log("--------------------------------------")
+		t.Logf("id_length: %d", txobj2.IdLength)
+		t.Logf("%v", txobj2.Stringer())
 		t.Log("--------------------------------------")
 
-		obj1, err := BBcTransactionDeserialize(dat)
-		if err != nil {
-			t.Fatalf("failed to deserialize transaction object (%v)", err)
-		}
-		t.Logf("deserialized: %v", obj1)
-
-		if obj1.Tx_base.Header.Timestamp != obj.Tx_base.Header.Timestamp {
-			t.Fatalf("failed to recover transaction")
+		if bytes.Compare(txobj.TransactionId, txobj2.TransactionId) != 0 {
+			t.Fatal("Not recovered correctly...")
 		}
 	})
 
-	t.Run("create from hex string", func(t *testing.T) {
-		dat2, err := hex.DecodeString(hexdat)
-		var out map[string]interface{}
-		bson.Unmarshal(dat2[2:], &out)
-		t.Logf("direct unmarshal: %v", out)
-
-		obj2, err := BBcTransactionDeserialize(dat2)
+	t.Run("serialize and deserialize with zlib", func(t *testing.T) {
+		dat, err := Serialize(&txobj, 0x0010)
 		if err != nil {
-			t.Fatalf("failed to deserialize transaction object (%v)", err)
+			t.Fatalf("failed to serialize transaction object (%v)", err)
 		}
-		t.Logf("deserialized: %v", obj2)
-		t.Logf("txid: %x", obj2.Transaction_id)
+		t.Logf("Serialized data: %x", dat)
+		t.Logf("Serialized data size: %d", len(dat))
 
-		dat3, err := obj2.Serialize(false)
-		t.Logf("serialize for id: %x", dat3)
-
-		if ! reflect.DeepEqual(dat2, dat3) {
-			t.Fatalf("failed to recover transaction")
+		txobj2, err := Deserialize(dat)
+		if err != nil {
+			t.Fatalf("failed to deserialize transaction data (%v)", err)
 		}
+		t.Log("--------------------------------------")
+		t.Logf("id_length: %d", txobj2.IdLength)
+		t.Logf("%v", txobj2.Stringer())
+		t.Log("--------------------------------------")
 
-		t.Log(obj2.Stringer())
-		if result, i := obj2.VerifyAll(); !result {
-			t.Fatalf("Verify failed at %d", i)
+		if bytes.Compare(txobj.TransactionId, txobj2.TransactionId) != 0 {
+			t.Fatal("Not recovered correctly...")
 		}
-		t.Log("Vefiry succeeded")
 	})
-}
 
-func TestBBcTransaction_sign_verify(t *testing.T) {
-	transaction_data_str := "0100eb020000037472616e73616374696f6e5f6261736500cb0100000368656164657200300000001076657273696f6e00010000001074696d657374616d7000c8114a5b1069645f6c656e677468000800000000046576656e7473000500000000047265666572656e6365730005000000000472656c6174696f6e730008010000033000000100000561737365745f67726f75705f696400080000000097ae91fdf53b42f904706f696e7465727300340000000330002c000000057472616e73616374696f6e5f6964000800000000e2cb2f11354da8460a61737365745f696400000003617373657400990000000561737365745f6964000800000000ff480552b181be8305757365725f696400080000000014f88af18b9b6e9f056e6f6e63650008000000002a9171b72b2b21e21061737365745f66696c655f73697a6500000000000a61737365745f66696c655f646967657374001061737365745f626f64795f73697a6500050000000561737365745f626f64790005000000006363636363000000037769746e657373005400000004757365725f6964730025000000053000080000000014f88af18b9b6e9f0531000800000000a17d905e3b46115700047369675f696e6469636573001300000010300000000000103100010000000000000a63726f73735f72656600047369676e61747572657300f2000000033000d4000000106b65795f747970650002000000107075626b65795f6c656e0008020000057075626b657900410000000004ad2a98031c625fd153a4d61b7b9c8155299ab5308b81c7449d6e61513023151a8a0d77fbee3338c7cb81639060580696e1bf3a8769a5e84c659fb566b23de2fa107369676e61747572655f6c656e0000020000057369676e617475726500400000000033927e004810874d1eda87180b72a86ddbd2af4e28f4cd1a7b8bef7729881afe9d15bc43f77df59a8aa953a81dbed2448442a734b237447b88248401f4860f180003310013000000106b65795f747970650000000000000000"
-	user_id_str := "a17d905e3b461157"
+	t.Run("deserialize txdata genarated (type0) by python bbclib", func(t *testing.T) {
+		dat, err := hex.DecodeString(txdataType0)
+		txobj2, err := Deserialize(dat)
+		if err != nil {
+			t.Fatalf("failed to deserialize transaction data (%v)", err)
+		}
+		t.Log("--------------------------------------")
+		t.Logf("id_length: %d", txobj2.IdLength)
+		t.Logf("%v", txobj2.Stringer())
+		t.Log("--------------------------------------")
 
-	keypair := GenerateKeypair(2)
-	transaction_data, _ := hex.DecodeString(transaction_data_str)
-	user_id, _ := hex.DecodeString(user_id_str)
-	txobj, _ := BBcTransactionDeserialize(transaction_data)
-	t.Log(txobj.Stringer())
-	digest := txobj.Digest()
+		txid_orig, err := hex.DecodeString(txid)
+		if bytes.Compare(txobj2.TransactionId, txid_orig) != 0 {
+			t.Fatal("Not recovered correctly...1")
+		}
+		asgid_org, err := hex.DecodeString(assetGroupIdInTx)
+		if bytes.Compare(txobj2.Relations[0].AssetGroupId, asgid_org) != 0 {
+			t.Fatal("Not recovered correctly...2")
+		}
+	})
 
-	txobj.AddSignature(user_id, keypair, digest)
-	datNew, err := txobj.Serialize(false)
-	if err != nil {
-		t.Fatalf("failed to serialize transaction object (%v)", err)
-	}
-	t.Logf("txid: %x", txobj.Transaction_id)
-	t.Logf("serialized tx: %x\n", datNew)
+	t.Run("deserialize txdata genarated (type0x0010) by python bbclib", func(t *testing.T) {
+		dat, err := hex.DecodeString(txdataType1)
+		txobj2, err := Deserialize(dat)
+		if err != nil {
+			t.Fatalf("failed to deserialize transaction data (%v)", err)
+		}
+		t.Log("--------------------------------------")
+		t.Logf("id_length: %d", txobj2.IdLength)
+		t.Logf("%v", txobj2.Stringer())
+		t.Log("--------------------------------------")
 
-	txobj2, err := BBcTransactionDeserialize(datNew)
-	if err != nil {
-		t.Fatalf("failed to deserialize transaction object (%v)", err)
-	}
-	t.Log(txobj2.Stringer())
-	if result, i := txobj2.VerifyAll(); !result {
-		t.Fatalf("Verify failed at %d", i)
-	}
-	t.Log("Vefiry succeeded")
-}
-
-
-func TestBBcTransaction_sign_verify_zlib(t *testing.T) {
-	transaction_data_str := "0300789c7bcdc4c0c05c529498579c985c92999f179f94589cca709a11289a919a98925ac460c0c0c02050965a540c94656004714a3273538b4b12730b1852d5bda2053253e27352f3d24b32183880b20c2ca965a97925c50cac604e516a5a6a516a5e722a422027116451310307c812a0e9408a35b1b838b5243ebd28bfb4203e330562d0b1009b4596f6b507590af233f34a800e60306100ebd00152acc86e86e968640a9d5a75c046960b621c5018a81ecc6698c900b705a6da50634de0e1042d21d6d2e2d422b8685b88cd09a355e1bb59f3f281ae8688f5712e7b5b66dffd5d0062405a664e6a7c7166552a488e810b493025331d18320c507549f929951075ac08db418290a0480601900bcb334bf2528b8b194240e103754c31832a488f019aa30c21fce5efe62564dfd037666029ce4c8fcfcc4bc90405b03028720cc08e1230044715c879c945f9c5c5f1c078002bce4b2c292d02aafd0409ca2b20b5d9a995f1259505a90c4c205e416912480018a50c1c400156089fc1111c7b2f19cf9bbe7eddfddc952d7a7d4dccef65a70ff23cf977eee4992d9fab17fd94f8afde3ef5998aebd429017337ee64636d65afffa67e5253a630e1b1eb2a211d46a9c275027027802d00d9c80a17627000db61f972e9fa38fe1b056a2e6f97772d9209f8bda6b056f4fd6306c18f9b4ba3c48f7cf698b4f3ac70c5cc7ae525dbb4974c14afd64e3457d575395598b0abe656f9968f0ccc869090807b0b0a0049e5e24d"
-	user_id_str := "83d1e4aa0deebab5"
-
-	keypair := GenerateKeypair(2)
-	transaction_data, _ := hex.DecodeString(transaction_data_str)
-	user_id, _ := hex.DecodeString(user_id_str)
-	txobj, _ := BBcTransactionDeserialize(transaction_data)
-	t.Log(txobj.Stringer())
-	digest := txobj.Digest()
-
-	txobj.AddSignature(user_id, keypair, digest)
-	datNew, err := txobj.Serialize(false)
-	if err != nil {
-		t.Fatalf("failed to serialize transaction object (%v)", err)
-	}
-	t.Logf("txid: %x", txobj.Transaction_id)
-	t.Logf("serialized tx: %x\n", datNew)
-
-	txobj2, err := BBcTransactionDeserialize(datNew)
-	if err != nil {
-		t.Fatalf("failed to deserialize transaction object (%v)", err)
-	}
-	t.Log(txobj2.Stringer())
-	if result, i := txobj2.VerifyAll(); !result {
-		t.Fatalf("Verify failed at %d", i)
-	}
-	t.Log("Vefiry succeeded")
+		txid_orig, err := hex.DecodeString(txid)
+		if bytes.Compare(txobj2.TransactionId, txid_orig) != 0 {
+			t.Fatal("Not recovered correctly...1")
+		}
+		asgid_org, err := hex.DecodeString(assetGroupIdInTx)
+		if bytes.Compare(txobj2.Relations[0].AssetGroupId, asgid_org) != 0 {
+			t.Fatal("Not recovered correctly...2")
+		}
+	})
 }

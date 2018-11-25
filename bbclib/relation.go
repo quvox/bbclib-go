@@ -1,68 +1,123 @@
 package bbclib
 
 import (
-	"gopkg.in/mgo.v2/bson"
-	"errors"
+	"bytes"
+	"encoding/binary"
 	"fmt"
 )
 
 type (
 	BBcRelation struct {
-		Format_type		int				`bson:"-" json:"-"`
-		Id_length		int				`bson:"-" json:"-"`
-		Asset_group_id	[]byte			`bson:"asset_group_id" json:"asset_group_id"`
-		Pointers 		[]BBcPointer	`bson:"pointers" json:"pointers"`
-		Asset 			BBcAsset		`bson:"asset" json:"asset"`
+		IdLength		int
+		AssetGroupId	[]byte
+		Pointers 		[]*BBcPointer
+		Asset 			*BBcAsset
 	}
 )
 
 
 func (p *BBcRelation) Stringer() string {
-	ret := fmt.Sprintf("  asset_group_id: %x\n", p.Asset_group_id)
+	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupId)
 	if p.Pointers != nil {
 		ret += fmt.Sprintf("  Pointers[]: %d\n", len(p.Pointers))
 		for i := range p.Pointers {
 			ret += fmt.Sprintf("   [%d]\n", i)
 			ret += p.Pointers[i].Stringer()
 		}
+	} else {
+		ret += fmt.Sprintf("  Pointers[]: None\n")
 	}
-	ret += p.Asset.Stringer()
+	if p.Asset != nil {
+		ret += p.Asset.Stringer()
+	} else {
+		ret += fmt.Sprintf("  Asset: None\n")
+	}
 	return ret
 }
 
 
-func (p *BBcRelation) Serialize() ([]byte, error) {
-	if p.Format_type != FORMAT_BINARY {
-		return p.serializeObj()
+func (p *BBcRelation) Add(assetGroupId *[]byte, asset *BBcAsset) {
+	if assetGroupId != nil {
+		p.AssetGroupId = make([]byte, p.IdLength)
+		copy(p.AssetGroupId, *assetGroupId)
 	}
-	return nil, errors.New("not support the format")
+	if asset != nil {
+		p.Asset = asset
+		p.Asset.IdLength = p.IdLength
+	}
+}
+
+func (p *BBcRelation) AddPointer(pointer *BBcPointer) {
+	pointer.IdLength = p.IdLength
+	p.Pointers = append(p.Pointers, pointer)
 }
 
 
-func (p *BBcRelation) serializeObj() ([]byte, error) {
-	dat, err := bson.Marshal(p)
+func (p *BBcRelation) Pack() ([]byte, error) {
+	buf := new(bytes.Buffer)
+
+	PutBigInt(buf, &p.AssetGroupId, p.IdLength)
+
+	Put2byte(buf, uint16(len(p.Pointers)))
+	for _, p := range p.Pointers {
+		dat, er := p.Pack()
+		if er != nil {
+			return nil, er
+		}
+		Put2byte(buf, uint16(binary.Size(dat)))
+		if err := binary.Write(buf, binary.LittleEndian, dat); err != nil {
+			return nil, err
+		}
+	}
+	if p.Asset != nil {
+		ast, er := p.Asset.Pack()
+		if er != nil {
+			return nil, er
+		}
+		Put4byte(buf, uint32(binary.Size(ast)))
+		if err := binary.Write(buf, binary.LittleEndian, ast); err != nil {
+			return nil, err
+		}
+	} else {
+		Put4byte(buf, 0)
+	}
+	return buf.Bytes(), nil
+}
+
+
+func (p *BBcRelation) Unpack(dat *[]byte) error {
+	var err error
+	buf := bytes.NewBuffer(*dat)
+
+	p.AssetGroupId, err = GetBigInt(buf)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if p.Format_type == FORMAT_BSON_COMPRESS_ZLIB || p.Format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		return ZlibCompress(&dat), nil
+
+	numPointers, err := Get2byte(buf)
+	for i := 0; i < int(numPointers); i++ {
+		plen, err := Get2byte(buf)
+		if err != nil {
+			return err
+		}
+		ptr, err := GetBytes(buf, int(plen))
+		pointer := BBcPointer{IdLength:p.IdLength}
+		pointer.Unpack(&ptr)
+		p.Pointers = append(p.Pointers, &pointer)
 	}
-	return dat, err
-}
 
-
-func BBcRelationDeserialize(format_type int, dat []byte) (BBcRelation, error) {
-	if format_type != FORMAT_BINARY {
-		return bbcRelationDeserializeObj(dat)
+	assetSize, err := Get4byte(buf)
+	if err != nil {
+		return err
 	}
-	obj := BBcRelation{}
-	return obj, errors.New("not support the format")
+	if assetSize > 0 {
+		ast, err := GetBytes(buf, int(assetSize))
+		if err != nil {
+			return err
+		}
+		p.Asset = &BBcAsset{IdLength:p.IdLength}
+		p.Asset.Unpack(&ast)
+	}
+
+	return nil
 }
-
-
-func bbcRelationDeserializeObj(dat []byte) (BBcRelation, error) {
-	obj := BBcRelation{}
-	err := bson.Unmarshal(dat, &obj)
-	return obj, err
-}
-

@@ -2,17 +2,16 @@
 
 
 [[projects]]
-  branch = "v2"
-  name = "gopkg.in/mgo.v2"
-  packages = [
-    "bson",
-    "internal/json"
-  ]
-  revision = "9856a29383ce1c59f308dd1cf0363a79b5bef6b5"
+  digest = "1:03aa6e485e528acb119fb32901cf99582c380225fc7d5a02758e08b180cb56c3"
+  name = "github.com/ugorji/go"
+  packages = ["codec"]
+  pruneopts = "UT"
+  revision = "b4c50a2b199d93b13dc15e78929cfb23bfdf21ab"
+  version = "v1.1.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "72c4b713baceea3e6f505de57a758c2f27c3375e5d62237e0b1c2868f9b0771e"
+  input-imports = ["github.com/ugorji/go/codec"]
   solver-name = "gps-cdcl"
   solver-version = 1

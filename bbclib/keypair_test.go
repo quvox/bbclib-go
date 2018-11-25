@@ -1,19 +1,19 @@
 package bbclib
 
 import (
-	"testing"
 	"crypto/sha256"
+	"testing"
 )
 
 
 func TestGenerateKeypair(t *testing.T) {
 	for curvetype := 1; curvetype < 3; curvetype++ {
 		t.Run("curvetype", func(t *testing.T) {
-			keypair := GenerateKeypair(curvetype)
+			keypair := GenerateKeypair(curvetype, defaultCompressionMode)
+			t.Logf("keypair: %v", keypair)
 			if len(keypair.Pubkey) != 65 {
 				t.Fatal("fail to generate keypair")
 			}
-			t.Logf("keypair: %v", keypair)
 		})
 	}
 }
@@ -26,8 +26,8 @@ func TestKeyPair_Sign_and_Verify(t *testing.T) {
 	t.Logf("SHA-256 digest2: %x\n", digest2)
 
 	for curvetype := 1; curvetype < 3; curvetype++ {
-		keypair := GenerateKeypair(curvetype)
-		keypair2 := GenerateKeypair(curvetype)
+		keypair := GenerateKeypair(curvetype, defaultCompressionMode)
+		keypair2 := GenerateKeypair(curvetype, defaultCompressionMode)
 		t.Run("curvetype", func(t *testing.T) {
 			t.Logf("Curvetype = %d", curvetype)
 			if len(keypair.Pubkey) != 65 {
@@ -90,13 +90,11 @@ func TestVerifyBBcSignature(t *testing.T) {
 
 	for curvetype := 1; curvetype < 3; curvetype++ {
 		t.Run("curvetype", func(t *testing.T) {
-			keypair := GenerateKeypair(curvetype)
-			sig := BBcSignature{
-				Format_type: FORMAT_BSON,
-				Key_type:    curvetype,
-				Signature:   keypair.Sign(digest[:]),
-				Pubkey:      keypair.Pubkey,
-			}
+			keypair := GenerateKeypair(curvetype, defaultCompressionMode)
+			sig := BBcSignature{}
+			sig.SetPublicKey(uint32(curvetype), &keypair.Pubkey)
+			signature := keypair.Sign(digest[:])
+			sig.SetSignature(&signature)
 			result1 := keypair.Verify(digest[:], sig.Signature)
 			if ! result1 {
 				t.Fatal("fail to verify")
@@ -109,14 +107,12 @@ func TestVerifyBBcSignature(t *testing.T) {
 			}
 			t.Log("Verify succeeded")
 
-			keypair2 := GenerateKeypair(curvetype)
-			sig2 := BBcSignature{
-				Format_type: FORMAT_BSON,
-				Key_type:    curvetype,
-				Signature:   keypair2.Sign(digest[:]),
-				Pubkey:      keypair.Pubkey,
-			}
-			result = VerifyBBcSignature(digest[:], &sig2)
+			keypair2 := GenerateKeypair(curvetype, defaultCompressionMode)
+			sig2 := BBcSignature{}
+			sig2.SetPublicKey(uint32(curvetype), &keypair.Pubkey)
+			signature2 := keypair2.Sign(digest[:])
+			sig2.SetSignature(&signature2)
+			result = sig2.Verify(digest[:])
 			if result {
 				t.Fatal("Verify returns true but not correct...")
 			}
@@ -128,8 +124,8 @@ func TestVerifyBBcSignature(t *testing.T) {
 
 func TestKeyPair_ConvertFromPem(t *testing.T) {
 	pem := "-----BEGIN EC PRIVATE KEY-----\nMHQCAQEEIIMVMPKLJqivgRDpRDaWJCOnob6s/+t4MdoFN/8PVkNSoAcGBSuBBAAK\noUQDQgAE/k1ZM/Ker1+N0+Lg5za0sJZeSAAeYwDEWnkgnkCynErs74G/tAnu/lcu\nk8kzAivYm8mitIpJJw1OdjCDJI457g==\n-----END EC PRIVATE KEY-----"
-	keypair := KeyPair{Curvetype: 1}
-	keypair.ConvertFromPem(pem)
+	keypair := KeyPair{CurveType: KeyType_ECDSA_SECP256k1}
+	keypair.ConvertFromPem(pem, defaultCompressionMode)
 	t.Logf("keypair: %v", keypair)
 
 	if len(keypair.Privkey) != 32 {

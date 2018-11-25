@@ -1,61 +1,63 @@
 package bbclib
 
 import (
-	"gopkg.in/mgo.v2/bson"
-	"errors"
+	"bytes"
 	"fmt"
 )
 
 type (
 	BBcCrossRef struct {
-		Format_type		int		`bson:"-" json:"-"`
-		Id_length 		int		`bson:"-" json:"-"`
-		Domain_id 		*[]byte	`bson:"domain_id" json:"domain_id"`
-		Transaction_id	*[]byte	`bson:"transaction_id" json:"transaction_id"`
+		IdLength 		int
+		DomainId 		[]byte
+		TransactionId	[]byte
 	}
 )
 
+var (
+	DomainIdLength = 32
+)
 
 func (p *BBcCrossRef) Stringer() string {
 	ret := "Cross_Ref:\n"
-	ret += fmt.Sprintf("  domain_id: %x\n", p.Domain_id)
-	ret += fmt.Sprintf("  transaction_id: %x\n", p.Transaction_id)
+	ret += fmt.Sprintf("  domain_id: %x\n", p.DomainId)
+	ret += fmt.Sprintf("  transaction_id: %x\n", p.TransactionId)
 	return ret
 }
 
 
-func (p *BBcCrossRef) Serialize() ([]byte, error) {
-	if p.Format_type != FORMAT_BINARY {
-		return p.serializeObj()
+func (p *BBcCrossRef) Add(domainId *[]byte, txid *[]byte) {
+	if domainId != nil {
+		p.DomainId = make([]byte, DomainIdLength)
+		copy(p.DomainId, *domainId)
 	}
-	return nil, errors.New("not support the format")
+	if txid != nil {
+		p.TransactionId = make([]byte, p.IdLength)
+		copy(p.TransactionId, (*txid)[:p.IdLength])
+	}
 }
 
+func (p *BBcCrossRef) Pack() ([]byte, error) {
+	buf := new(bytes.Buffer)
 
-func (p *BBcCrossRef) serializeObj() ([]byte, error) {
-	dat, err := bson.Marshal(p)
+	PutBigInt(buf, &p.DomainId, DomainIdLength)
+	PutBigInt(buf, &p.TransactionId, 32)
+
+	return buf.Bytes(), nil
+}
+
+func (p *BBcCrossRef) Unpack(dat *[]byte) error {
+	var err error
+	buf := bytes.NewBuffer(*dat)
+
+	p.DomainId, err = GetBigInt(buf)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if p.Format_type == FORMAT_BSON_COMPRESS_ZLIB || p.Format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		return ZlibCompress(&dat), nil
+
+	p.TransactionId, err = GetBigInt(buf)
+	if err != nil {
+		return err
 	}
-	return dat, err
+
+	return nil
 }
-
-
-func BBcCrossRefDeserialize(format_type int, dat []byte) (BBcCrossRef, error) {
-	if format_type != FORMAT_BINARY {
-		return bbcCrossRefDeserializeObj(dat)
-	}
-	obj := BBcCrossRef{}
-	return obj, errors.New("not support the format")
-}
-
-
-func bbcCrossRefDeserializeObj(dat []byte) (BBcCrossRef, error) {
-	obj := BBcCrossRef{}
-	err := bson.Unmarshal(dat, &obj)
-	return obj, err
-}
-

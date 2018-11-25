@@ -1,68 +1,103 @@
 package bbclib
 
+import "C"
 import (
-	"gopkg.in/mgo.v2/bson"
-	"errors"
+	"bytes"
+	"encoding/binary"
 	"fmt"
 )
 
 type (
 	BBcSignature struct {
-		Format_type		int			`bson:"-" json:"-"`
-		Key_type 		int			`bson:"key_type" json:"key_type"`
-		Signature 		[]byte		`bson:"signature" json:"signature"`
-		Signature_len 	int			`bson:"signature_len" json:"signature_len"`
-		Pubkey 			[]byte		`bson:"pubkey" json:"pubkey"`
-		Pubkey_len 		int			`bson:"pubkey_len" json:"pubkey_len"`
+		KeyType 		uint32
+		Pubkey 			[]byte
+		PubkeyLen 		uint32
+		Signature 		[]byte
+		SignatureLen 	uint32
 	}
 )
 
 
 func (p *BBcSignature) Stringer() string {
-	if p.Key_type == KeyType_NOT_INITIALIZED {
+	if p.KeyType == KeyType_NOT_INITIALIZED {
 		return "  Not initialized\n"
 	}
-	ret :=  fmt.Sprintf("  key_type: %d\n", p.Key_type)
+	ret :=  fmt.Sprintf("  key_type: %d\n", p.KeyType)
 	ret +=  fmt.Sprintf("  signature: %x\n", p.Signature)
 	ret +=  fmt.Sprintf("  pubkey: %x\n", p.Pubkey)
 	return ret
 }
 
+func (p *BBcSignature) SetPublicKey(keyType uint32, pubkey *[]byte) {
+	p.KeyType = keyType
+	p.Pubkey = *pubkey
+	p.PubkeyLen = uint32(len(p.Pubkey) * 8)
+}
 
-func (p *BBcSignature) Serialize() ([]byte, error) {
-	p.Pubkey_len = len(p.Pubkey) * 8
-	p.Signature_len = len(p.Signature) * 8
-	if p.Format_type != FORMAT_BINARY {
-		return p.serializeObj()
-	}
-	return nil, errors.New("not support the format")
+func (p *BBcSignature) SetPublicKeyByKeypair(keypair *KeyPair) {
+	p.KeyType = uint32(keypair.CurveType)
+	p.Pubkey = keypair.Pubkey
+	p.PubkeyLen = uint32(len(p.Pubkey) * 8)
+}
+
+func (p *BBcSignature) SetSignature(sig *[]byte) {
+	p.Signature = *sig
+	p.SignatureLen = uint32(len(p.Signature) * 8)
 }
 
 
-func (p *BBcSignature) serializeObj() ([]byte, error) {
-	dat, err := bson.Marshal(p)
-	if err != nil {
+func (p *BBcSignature) Verify(digest []byte) bool {
+	return VerifyBBcSignature(digest, p)
+}
+
+func (p *BBcSignature) Pack() ([]byte, error) {
+	buf := new(bytes.Buffer)
+
+	Put4byte(buf, p.KeyType)
+	if p.KeyType == KeyType_NOT_INITIALIZED {
+		return buf.Bytes(), nil
+	}
+
+	Put4byte(buf, p.PubkeyLen)
+	if err := binary.Write(buf, binary.LittleEndian, p.Pubkey); err != nil {
 		return nil, err
 	}
-	if p.Format_type == FORMAT_BSON_COMPRESS_ZLIB || p.Format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		return ZlibCompress(&dat), nil
+
+	Put4byte(buf, p.SignatureLen)
+	if err := binary.Write(buf, binary.LittleEndian, p.Signature); err != nil {
+		return nil, err
 	}
-	return dat, err
+
+	return buf.Bytes(), nil
 }
 
 
-func BBcSignatureDeserialize(format_type int, dat []byte) (BBcSignature, error) {
-	if format_type != FORMAT_BINARY {
-		return bbcSignatureDeserializeObj(dat)
+func (p *BBcSignature) Unpack(dat []byte) error {
+	var err error
+	buf := bytes.NewBuffer(dat)
+
+	keyType, err := Get4byte(buf)
+	if err != nil {
+		return err
 	}
-	obj := BBcSignature{}
-	return obj, errors.New("not support the format")
+	if keyType == 0 {
+		return nil
+	}
+	p.KeyType = uint32(keyType)
+
+	p.PubkeyLen, err = Get4byte(buf)
+	if err != nil {
+		return err
+	}
+	p.Pubkey = make([]byte, int(p.PubkeyLen/8))
+	p.Pubkey, err =  GetBytes(buf, int(p.PubkeyLen/8))
+
+	p.SignatureLen, err = Get4byte(buf)
+	if err != nil {
+		return err
+	}
+	p.Signature = make([]byte, int(p.SignatureLen/8))
+	p.Signature, err =  GetBytes(buf, int(p.SignatureLen/8))
+
+	return nil
 }
-
-
-func bbcSignatureDeserializeObj(dat []byte) (BBcSignature, error) {
-	obj := BBcSignature{}
-	err := bson.Unmarshal(dat, &obj)
-	return obj, err
-}
-

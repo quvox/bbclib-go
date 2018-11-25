@@ -1,84 +1,196 @@
 package bbclib
 
 import (
-	"gopkg.in/mgo.v2/bson"
-	"errors"
+	"bytes"
+	"encoding/binary"
 	"fmt"
 )
 
 type (
 	BBcEvent struct {
-		Format_type 		int			`bson:"-" json:"-"`
-		Id_length 			int			`bson:"-" json:"-"`
-		Asset_group_id 		[]byte		`bson:"asset_group_id" json:"asset_group_id"`
-		Reference_indices 	[]int		`bson:"reference_indices" json:"reference_indices"`
-		Mandatory_approvers [][]byte	`bson:"mandatory_approvers" json:"mandatory_approvers"`
-		Option_approver_num_numerator 	int		`bson:"option_approver_num_numerator" json:"option_approver_num_numerator"`
-		Option_approver_num_denominator	int		`bson:"option_approver_num_denominator" json:"option_approver_num_denominator"`
-		Option_approvers 	[][]byte	`bson:"option_approvers" json:"option_approvers"`
-		Asset				BBcAsset	`bson:"asset" json:"asset"`
+		IdLength 			int
+		AssetGroupId 		[]byte
+		ReferenceIndices 	[]int
+		MandatoryApprovers	[][]byte
+		OptionApproverNumNumerator 		uint16
+		OptionApproverNumDenominator	uint16
+		OptionApprovers 	[][]byte
+		Asset				*BBcAsset
 	}
 )
 
 
 func (p *BBcEvent) Stringer() string {
-	ret := fmt.Sprintf("  asset_group_id: %x\n", p.Asset_group_id)
-	ret += fmt.Sprintf("  reference_indices: %v\n", p.Reference_indices)
+	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupId)
+	if p.ReferenceIndices != nil {
+		ret += fmt.Sprintf("  reference_indices: %v\n", p.ReferenceIndices)
+	} else {
+		ret += fmt.Sprintf("  reference_indices: None\n")
+	}
 	ret += "  mandatory_approvers:\n"
-	if p.Mandatory_approvers != nil {
-		for i := range p.Mandatory_approvers {
-			ret += fmt.Sprintf("    - %x\n", p.Mandatory_approvers[i])
+	if p.MandatoryApprovers != nil {
+		for _, a := range p.MandatoryApprovers {
+			ret += fmt.Sprintf("    - %x\n", a)
 		}
 	} else {
 		ret += "    - None\n"
 	}
 	ret += "  option_approvers:\n"
-	if p.Option_approvers != nil {
-		for i := range p.Option_approvers {
-			ret += fmt.Sprintf("    - %x\n", p.Option_approvers[i])
+	if p.OptionApprovers != nil {
+		for _, o := range p.OptionApprovers {
+			ret += fmt.Sprintf("    - %x\n", o)
 		}
 	} else {
 		ret += "    - None\n"
 	}
-	ret += fmt.Sprintf("  option_approver_num_numerator: %d\n", p.Option_approver_num_numerator)
-	ret += fmt.Sprintf("  option_approver_num_denominator: %d\n", p.Option_approver_num_denominator)
-	ret += p.Asset.Stringer()
+	ret += fmt.Sprintf("  option_approver_num_numerator: %d\n", p.OptionApproverNumNumerator)
+	ret += fmt.Sprintf("  option_approver_num_denominator: %d\n", p.OptionApproverNumDenominator)
+	if p.Asset != nil {
+		ret += p.Asset.Stringer()
+	} else {
+		ret += fmt.Sprintf("  Asset: None\n")
+	}
 	return ret
 }
 
 
-func (p *BBcEvent) Serialize() ([]byte, error) {
-	if len(p.Asset_group_id) > p.Id_length {
-		p.Asset_group_id = p.Asset_group_id[:p.Id_length]
+func (p *BBcEvent) Add(assetGroupId *[]byte, asset *BBcAsset) {
+	if assetGroupId != nil {
+		p.AssetGroupId = make([]byte, p.IdLength)
+		copy(p.AssetGroupId, (*assetGroupId)[:p.IdLength])
 	}
-	if p.Mandatory_approvers != nil {
-		for i := range p.Mandatory_approvers {
-			if len(p.Mandatory_approvers[i]) > p.Id_length {
-				p.Mandatory_approvers[i] = p.Mandatory_approvers[i][:p.Id_length]
-			}
-		}
+	if asset != nil {
+		p.Asset = asset
+		p.Asset.IdLength = p.IdLength
 	}
-	if p.Option_approvers != nil {
-		for i := range p.Option_approvers {
-			if len(p.Option_approvers[i]) > p.Id_length {
-				p.Option_approvers[i] = p.Option_approvers[i][:p.Id_length]
-			}
-		}
+}
+
+func (p *BBcEvent) AddReferenceIndex(relIndex int) {
+	if relIndex != -1 {
+		p.ReferenceIndices = append(p.ReferenceIndices, relIndex)
 	}
-	if p.Format_type != FORMAT_BINARY {
-		return p.serializeObj()
-	}
-	return nil, errors.New("not support the format")
+}
+
+func (p *BBcEvent) AddOptionParams(numerator int, denominator int) {
+	p.OptionApproverNumNumerator = uint16(numerator)
+	p.OptionApproverNumDenominator = uint16(denominator)
+}
+
+func (p *BBcEvent) AddMandatoryApprover(userId *[]byte) {
+	uid := make([]byte, p.IdLength)
+	copy(uid, *userId)
+	p.MandatoryApprovers = append(p.MandatoryApprovers, uid)
+}
+
+func (p *BBcEvent) AddOptionApprover(userId *[]byte) {
+	uid := make([]byte, p.IdLength)
+	copy(uid, *userId)
+	p.OptionApprovers = append(p.OptionApprovers, uid)
 }
 
 
-func (p *BBcEvent) serializeObj() ([]byte, error) {
-	dat, err := bson.Marshal(p)
+func (p *BBcEvent) Pack() ([]byte, error) {
+	buf := new(bytes.Buffer)
+
+	PutBigInt(buf, &p.AssetGroupId, p.IdLength)
+
+	Put2byte(buf, uint16(len(p.ReferenceIndices)))
+	for i := 0; i < len(p.ReferenceIndices); i++ {
+		Put2byte(buf, uint16(p.ReferenceIndices[i]))
+	}
+
+	Put2byte(buf, uint16(len(p.MandatoryApprovers)))
+	for i := 0; i < len(p.MandatoryApprovers); i++ {
+		PutBigInt(buf, &p.MandatoryApprovers[i], p.IdLength)
+	}
+
+	Put2byte(buf, p.OptionApproverNumNumerator)
+	Put2byte(buf, p.OptionApproverNumDenominator)
+	Put2byte(buf, uint16(len(p.OptionApprovers)))
+	for i := 0; i < len(p.OptionApprovers); i++ {
+		PutBigInt(buf, &p.OptionApprovers[i], p.IdLength)
+	}
+
+	if p.Asset != nil {
+		ast, err := p.Asset.Pack()
+		if err != nil {
+			return nil, err
+		}
+		Put4byte(buf, uint32(binary.Size(ast)))
+		if err := binary.Write(buf, binary.LittleEndian, ast); err != nil {
+			return nil, err
+		}
+	} else {
+		Put4byte(buf, 0)
+	}
+
+	return buf.Bytes(), nil
+}
+
+
+
+func (p *BBcEvent) Unpack(dat *[]byte) error {
+	var err error
+	buf := bytes.NewBuffer(*dat)
+
+	p.AssetGroupId, err = GetBigInt(buf)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if p.Format_type == FORMAT_BSON_COMPRESS_ZLIB || p.Format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		return ZlibCompress(&dat), nil
+
+	numReferences, err := Get2byte(buf)
+	if err != nil {
+		return err
 	}
-	return dat, err
+	for i := 0; i < int(numReferences); i++ {
+		idx, err := Get2byte(buf)
+		if err != nil {
+			return err
+		}
+		p.ReferenceIndices = append(p.ReferenceIndices, int(idx))
+	}
+
+	numMandatory, err := Get2byte(buf)
+	for i := 0; i < int(numMandatory); i++ {
+		userId := make([]byte, p.IdLength)
+		userId, err = GetBigInt(buf)
+		if err != nil {
+			return err
+		}
+		p.MandatoryApprovers = append(p.MandatoryApprovers, userId)
+	}
+
+	p.OptionApproverNumNumerator, err = Get2byte(buf)
+	if err != nil {
+		return err
+	}
+	p.OptionApproverNumDenominator, err = Get2byte(buf)
+	if err != nil {
+		return err
+	}
+
+	numOptional, err := Get2byte(buf)
+	for i := 0; i < int(numOptional); i++ {
+		userId := make([]byte, p.IdLength)
+		userId, err = GetBigInt(buf)
+		if err != nil {
+			return err
+		}
+		p.OptionApprovers = append(p.OptionApprovers, userId)
+	}
+
+	assetSize, err := Get4byte(buf)
+	if err != nil {
+		return err
+	}
+	if assetSize > 0 {
+		ast, err := GetBytes(buf, int(assetSize))
+		if err != nil {
+			return err
+		}
+		p.Asset = &BBcAsset{IdLength:p.IdLength}
+		p.Asset.Unpack(&ast)
+	}
+
+	return nil
 }

@@ -1,17 +1,16 @@
 bbclib-go
 ====
-Golang implementation of bbclib.py in beyond-blockchain/bbc1
+Golang implementation of bbc1.core.bbclib and bbc1.core.libs modules in beyond-blockchain/bbc1
 
 ### Features
 * Support serializing/deserializing BBc-1 transaction object
-    * transaction version 1 or later (original one in bbc1 v.1.0 was 0)
-    * only BSON format is supported (ZLIB compression is also available)
+    * transaction version 1.2 or later
 * Support sign/verify transaction
 * Utility methods for creating transaction are not implemented
     * Need to set information to struct BBcTransaction and its members directly
 
 ### dependencies
-* libbbcsig.so used in bbc1 is needed
+* https://github.com/beyond-blockchain/libbbcsig
 
 
 ## Install
@@ -26,5 +25,5 @@ For Amazon Lambda, you need docker and do the following:
 sh prepare.sh aws
 ```
 
-After finishing prepare.sh script, you will find libbbcsig.so in bbclib/.
+After finishing prepare.sh script, you will find libbbcsig.dylib or libbbcsig.so in bbclib/.
 

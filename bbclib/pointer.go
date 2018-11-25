@@ -1,43 +1,75 @@
 package bbclib
 
 import (
-	"gopkg.in/mgo.v2/bson"
-	"errors"
+	"bytes"
 	"fmt"
 )
 
 type (
 	BBcPointer struct {
-		Format_type 	int		`bson:"-" json:"-"`
-		Id_length 		int		`bson:"-" json:"-"`
-		Transaction_id 	*[]byte	`bson:"transaction_id" json:"transaction_id"`
-		Asset_id 		*[]byte	`bson:"asset_id" json:"asset_id"`
+		IdLength 		int
+		TransactionId 	[]byte
+		AssetId 		[]byte
 	}
 )
 
 
 func (p *BBcPointer) Stringer() string {
-	ret := fmt.Sprintf("     transaction_id: %x\n", p.Transaction_id)
-	ret += fmt.Sprintf("     asset_id: %x\n", p.Asset_id)
+	ret := fmt.Sprintf("     transaction_id: %x\n", p.TransactionId)
+	ret += fmt.Sprintf("     asset_id: %x\n", p.AssetId)
 	return ret
 }
 
-
-func (p *BBcPointer) Serialize() ([]byte, error) {
-	if p.Format_type != FORMAT_BINARY {
-		return p.serializeObj()
+func (p *BBcPointer) Add(txid *[]byte, asid *[]byte) {
+	if txid != nil {
+		p.TransactionId = make([]byte, p.IdLength)
+		copy(p.TransactionId, (*txid)[:p.IdLength])
 	}
-	return nil, errors.New("not support the format")
+	if asid != nil {
+		p.AssetId = make([]byte, p.IdLength)
+		copy(p.AssetId, (*asid)[:p.IdLength])
+	}
 }
 
+func (p *BBcPointer) Pack() ([]byte, error) {
+	buf := new(bytes.Buffer)
 
-func (p *BBcPointer) serializeObj() ([]byte, error) {
-	dat, err := bson.Marshal(p)
+	PutBigInt(buf, &p.TransactionId, p.IdLength)
+
+	if p.AssetId != nil {
+		Put2byte(buf, 1)
+	} else {
+		Put2byte(buf, 0)
+		return buf.Bytes(), nil
+	}
+
+	PutBigInt(buf, &p.AssetId, p.IdLength)
+
+	return buf.Bytes(), nil
+}
+
+func (p *BBcPointer) Unpack(dat *[]byte) error {
+	var err error
+	buf := bytes.NewBuffer(*dat)
+
+	p.TransactionId, err = GetBigInt(buf)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if p.Format_type == FORMAT_BSON_COMPRESS_ZLIB || p.Format_type == FORMAT_MSGPACK_COMPRESS_ZLIB {
-		return ZlibCompress(&dat), nil
+
+	if val, err := Get2byte(buf); err != nil {
+		return err
+	} else {
+		if val == 0 {
+			p.AssetId = nil
+			return nil
+		}
 	}
-	return dat, err
+
+	p.AssetId, err = GetBigInt(buf)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
