@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2018 Zettant Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ */
+
 package bbclib
 
 import (
@@ -9,6 +25,30 @@ import (
 	"reflect"
 )
 
+/*
+This is the BBcTransaction definition.
+
+BBcTransaction is just a container of various objects.
+
+Events, References, Relations and Signatures are list of BBcEvent, BBcReference, BBcRelation and BBcSignature objects, respectively.
+"digestCalculating", "TransactionBaseDigest", "TransactionData" and "SigIndices" are not included in the packed data. They are internal use only.
+
+Calculating TransactionId
+
+How to calculate the TransactionId of the transaction is a little bit complicated, meaning that 2-step manner.
+This is because inter-domain transaction authenticity (i.e., CrossReference) can be conducted in secure manner.
+By presenting TransactionBaseDigest (see below) to an outer-domain, the domain user can confirm the existence of the transaction in the past.
+(no need to present whole transaction data including the asset information).
+
+1st step:
+  * Pack info (from version to Witness) by packBase()
+  * Calculate SHA256 digest of the packed info. This value is TransactionBaseDigest.
+
+2nd step:
+  * Pack BBcCrossRef object to get packed data by packCrossRef()
+  * Concatenate TransactionBaseDigest and the packed BBcCrossRef
+  * Calculate SHA256 digest of the concatenated data. This value is TransactionId
+ */
 type (
 	BBcTransaction struct {
 		digestCalculating bool
@@ -29,17 +69,7 @@ type (
 )
 
 
-/*
-const (
-	KeyType_NOT_INITIALIZED = 0
-	KeyType_ECDSA_SECP256k1 = 1
-	KeyType_ECDSA_P256v1 = 2
-	FORMAT_PLAIN = 0x0000
-	FORMAT_ZLIB = 0x0010
-)
-*/
-
-
+// Output content of the object
 func (p *BBcTransaction) Stringer() string {
 	var ret string
 	ret =  "------- Dump of the transaction data ------\n"
@@ -88,33 +118,39 @@ func (p *BBcTransaction) Stringer() string {
 	return ret
 }
 
+// Add BBcEvent object in the transaction object
 func (p *BBcTransaction) AddEvent(obj *BBcEvent) {
 	obj.IdLength = p.IdLength
 	p.Events = append(p.Events, obj)
 }
 
+// Add BBcReference object in the transaction object
 func (p *BBcTransaction) AddReference(obj *BBcReference) {
 	obj.IdLength = p.IdLength
 	p.References = append(p.References, obj)
 	obj.Transaction = p
 }
 
+// Add BBcRelation object in the transaction object
 func (p *BBcTransaction) AddRelation(obj *BBcRelation) {
 	obj.IdLength = p.IdLength
 	p.Relations = append(p.Relations, obj)
 }
 
+// Add BBcWitness object in the transaction object
 func (p *BBcTransaction) AddWitness(obj *BBcWitness) {
 	obj.IdLength = p.IdLength
 	p.Witness = obj
 	obj.Transaction = p
 }
 
+// Add BBcCrossRef object in the transaction object
 func (p *BBcTransaction) AddCrossRef(obj *BBcCrossRef) {
 	obj.IdLength = p.IdLength
 	p.Crossref = obj
 }
 
+// Add BBcSignature object for the specified userId in the transaction object
 func (p *BBcTransaction) AddSignature(userId *[]byte, sig *BBcSignature) {
 	for i := range p.SigIndices {
 		if reflect.DeepEqual(p.SigIndices[i], userId) {
@@ -128,17 +164,19 @@ func (p *BBcTransaction) AddSignature(userId *[]byte, sig *BBcSignature) {
 	p.Signatures = append(p.Signatures, sig)
 }
 
-func (p *BBcTransaction) GetSigIndex(uid []byte) int {
+// Get position (index) of the corespondent userId in the signature list
+func (p *BBcTransaction) GetSigIndex(userId []byte) int {
 	var i = -1
 	for i = range p.SigIndices {
-		if reflect.DeepEqual(p.SigIndices[i], uid) {
+		if reflect.DeepEqual(p.SigIndices[i], userId) {
 			return i
 		}
 	}
-	p.SigIndices = append(p.SigIndices, uid)
+	p.SigIndices = append(p.SigIndices, userId)
 	return i + 1
 }
 
+// Sign TransactionId using private key in the given keypair
 func (p *BBcTransaction) Sign(keypair *KeyPair) ([]byte, error) {
 	if p.TransactionId == nil {
 		p.Digest()
@@ -150,6 +188,7 @@ func (p *BBcTransaction) Sign(keypair *KeyPair) ([]byte, error) {
 	return signature, nil
 }
 
+// Verify TransactionId with all BBcSignature objects in the transaction
 func (p *BBcTransaction) VerifyAll() (bool, int) {
 	digest := p.Digest()
 	for i := range p.Signatures {
@@ -163,7 +202,7 @@ func (p *BBcTransaction) VerifyAll() (bool, int) {
 	return true, -1
 }
 
-
+// Calculate TransactionId of the BBcTransaction object
 func (p *BBcTransaction) Digest() []byte {
 	p.digestCalculating = true
 	if p.TransactionId == nil {
@@ -195,7 +234,7 @@ func (p *BBcTransaction) Digest() []byte {
 	return digest[:]
 }
 
-
+// Pack only BBcCrossRef object in binary data
 func (p *BBcTransaction) packCrossRef(buf *bytes.Buffer) error {
 	if p.Crossref != nil {
 		dat, err := p.Crossref.Pack()
@@ -213,6 +252,7 @@ func (p *BBcTransaction) packCrossRef(buf *bytes.Buffer) error {
 	return nil
 }
 
+// Pack the base part of BBcTransaction object in binary data (from version to witness)
 func (p *BBcTransaction) packBase(buf *bytes.Buffer) error {
 	Put4byte(buf, p.Version)
 	Put8byte(buf, p.Timestamp)
@@ -274,7 +314,7 @@ func (p *BBcTransaction) packBase(buf *bytes.Buffer) error {
 	return nil
 }
 
-
+// Pack BBcTransaction object in binary data
 func (p *BBcTransaction) Pack() ([]byte, error) {
 	if ! p.digestCalculating && p.TransactionId == nil {
 		p.Digest()
@@ -310,7 +350,7 @@ func (p *BBcTransaction) Pack() ([]byte, error) {
 	return p.TransactionData, nil
 }
 
-
+// Unpack binary data to BBcTransaction object
 func (p *BBcTransaction) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)

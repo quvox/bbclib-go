@@ -1,3 +1,20 @@
+/*
+Copyright (c) 2018 Zettant Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ */
+
+
 package bbclib
 
 import (
@@ -6,6 +23,24 @@ import (
 	"fmt"
 )
 
+/*
+This is the BBcEvent definition.
+
+BBcEvent expresses an output of UTXO (Unspent Transaction Output) structure.
+
+"AssetGroupId" distinguishes a type of asset, e.g., token-X, token-Y, Movie content, etc..
+
+"ReferenceIndices" has the index numbers in BBcReference object list in the transaction object.
+It expresses that this BBcEvent object has a certain relationship with the BBcReference objects specified by ReferenceIndices.
+This would be used in the case that the transaction object has multiple BBcReference objects.
+
+BBcEvent designates Mandatory/Option Approvers to be signers to a BBcTransaction in the future, which use the asset in the BBcEvent.
+As for "OptionApprovers", it is enough that some of them give sign to the BBcTransaction. The number of signers to be included is "OptionApproverNumNumerator".
+
+Asset is the most important part of the BBcTransaction. The BBcAsset object includes the digital asset to be protected by BBc-1.
+
+"IdLength" is not included in a packed data. It is for internal use only.
+ */
 type (
 	BBcEvent struct {
 		IdLength 			int
@@ -19,7 +54,7 @@ type (
 	}
 )
 
-
+// Output content of the object
 func (p *BBcEvent) Stringer() string {
 	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupId)
 	if p.ReferenceIndices != nil {
@@ -53,7 +88,7 @@ func (p *BBcEvent) Stringer() string {
 	return ret
 }
 
-
+// Add essential information to the BBcEvent object
 func (p *BBcEvent) Add(assetGroupId *[]byte, asset *BBcAsset) {
 	if assetGroupId != nil {
 		p.AssetGroupId = make([]byte, p.IdLength)
@@ -65,30 +100,34 @@ func (p *BBcEvent) Add(assetGroupId *[]byte, asset *BBcAsset) {
 	}
 }
 
+// Add ReferenceIndices to the BBcEvent object
 func (p *BBcEvent) AddReferenceIndex(relIndex int) {
 	if relIndex != -1 {
 		p.ReferenceIndices = append(p.ReferenceIndices, relIndex)
 	}
 }
 
+// Set OptionApproverNumNumerator and OptionApproverNumDenominator in the BBcEvent object
 func (p *BBcEvent) AddOptionParams(numerator int, denominator int) {
 	p.OptionApproverNumNumerator = uint16(numerator)
 	p.OptionApproverNumDenominator = uint16(denominator)
 }
 
+// Add userId in MandatoryApprover list of the BBcEvent object
 func (p *BBcEvent) AddMandatoryApprover(userId *[]byte) {
 	uid := make([]byte, p.IdLength)
 	copy(uid, *userId)
 	p.MandatoryApprovers = append(p.MandatoryApprovers, uid)
 }
 
+// Add userId in OptionApprover list of the BBcEvent object
 func (p *BBcEvent) AddOptionApprover(userId *[]byte) {
 	uid := make([]byte, p.IdLength)
 	copy(uid, *userId)
 	p.OptionApprovers = append(p.OptionApprovers, uid)
 }
 
-
+// Pack BBcEvent object in binary data
 func (p *BBcEvent) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -127,8 +166,7 @@ func (p *BBcEvent) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-
-
+// Unpack binary data to BBcEvent object
 func (p *BBcEvent) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)

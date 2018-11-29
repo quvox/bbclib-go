@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2018 Zettant Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ */
+
 package bbclib
 
 import (
@@ -5,28 +21,25 @@ import (
 	"testing"
 )
 
-var (
-	idLength = 32
-)
 
 func TestRelationPackUnpack(t *testing.T) {
 	t.Run("simple creation (string asset)", func(t *testing.T) {
-		obj := BBcRelation{IdLength:idLength}
+		obj := BBcRelation{IdLength:defaultIdLength}
 		ptr1 := BBcPointer{}
 		ptr2 := BBcPointer{}
 		ast := BBcAsset{}
 
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", idLength)
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
 		obj.Add(&assetgroup, &ast)
 		obj.AddPointer(&ptr1)
 		obj.AddPointer(&ptr2)
 
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", idLength)
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
-		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", idLength)
-		txid2 := GetIdentifierWithTimestamp("asdfauflkajethb;:a", idLength)
-		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", idLength)
+		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", defaultIdLength)
+		txid2 := GetIdentifierWithTimestamp("asdfauflkajethb;:a", defaultIdLength)
+		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", defaultIdLength)
 		ptr1.Add(&txid1, &asid1)
 		ptr2.Add(&txid2, nil)
 
@@ -41,7 +54,7 @@ func TestRelationPackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcRelation{IdLength:idLength}
+		obj2 := BBcRelation{IdLength:defaultIdLength}
 		obj2.Unpack(&dat)
 		t.Log("--------------------------------------")
 		t.Logf("id_length: %d", obj2.IdLength)
@@ -54,13 +67,13 @@ func TestRelationPackUnpack(t *testing.T) {
 	})
 
 	t.Run("simple creation (no pointer, msgpack asset)", func(t *testing.T) {
-		ast := BBcAsset{IdLength:idLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", idLength)
+		ast := BBcAsset{IdLength:defaultIdLength}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
 		ast.Add(&u1)
 		ast.AddBodyObject(map[int]string{1:"aaa", 2:"bbb", 10:"asdfasdfasf;lakj;lkj;"})
 
-		obj := BBcRelation{IdLength:idLength}
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", idLength)
+		obj := BBcRelation{IdLength:defaultIdLength}
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
 		obj.Add(&assetgroup, &ast)
 		t.Log("---------------Relation-----------------")
 		t.Logf("id_length: %d", obj.IdLength)
@@ -73,7 +86,7 @@ func TestRelationPackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcRelation{IdLength:idLength}
+		obj2 := BBcRelation{IdLength:defaultIdLength}
 		obj2.Unpack(&dat)
 		t.Log("--------------------------------------")
 		t.Logf("id_length: %d", obj2.IdLength)

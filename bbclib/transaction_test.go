@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2018 Zettant Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ */
+
 package bbclib
 
 import (
@@ -6,15 +22,12 @@ import (
 	"time"
 )
 
-var (
-	IdLength = 8
-)
 
 func TestTransactionPackUnpack(t *testing.T) {
 
 	t.Run("simple creation (with relation)", func(t *testing.T) {
 		keypair := GenerateKeypair(KeyType_ECDSA_P256v1, defaultCompressionMode)
-		txobj := BBcTransaction{Version:1, Timestamp:time.Now().UnixNano(), IdLength:IdLength}
+		txobj := BBcTransaction{Version:1, Timestamp:time.Now().UnixNano(), IdLength:defaultIdLength}
 		rtn := BBcRelation{}
 		txobj.AddRelation(&rtn)
 		wit := BBcWitness{}
@@ -26,27 +39,27 @@ func TestTransactionPackUnpack(t *testing.T) {
 		ptr1 := BBcPointer{}
 		ptr2 := BBcPointer{}
 
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", IdLength)
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
 		rtn.Add(&assetgroup, &ast)
 		rtn.AddPointer(&ptr1)
 		rtn.AddPointer(&ptr2)
 
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", IdLength)
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
-		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", IdLength)
-		txid2 := GetIdentifierWithTimestamp("asdfauflkajethb;:a", IdLength)
-		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", IdLength)
+		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", defaultIdLength)
+		txid2 := GetIdentifierWithTimestamp("asdfauflkajethb;:a", defaultIdLength)
+		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", defaultIdLength)
 		ptr1.Add(&txid1, &asid1)
 		ptr2.Add(&txid2, nil)
 
 		wit.AddWitness(&u1)
-		u2 := GetIdentifierWithTimestamp("user2", IdLength)
+		u2 := GetIdentifierWithTimestamp("user2", defaultIdLength)
 		wit.AddWitness(&u2)
 
-		dom := GetIdentifier("dummy domain", IdLength)
-		dummyTxid := GetIdentifierWithTimestamp("dummytxid", IdLength)
+		dom := GetIdentifier("dummy domain", defaultIdLength)
+		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIdLength)
 		crs.Add(&dom, &dummyTxid)
 
 		sig := BBcSignature{}
@@ -84,7 +97,7 @@ func TestTransactionPackUnpack(t *testing.T) {
 		}
 	})
 
-	txobj2 := BBcTransaction{Version:1, Timestamp:time.Now().UnixNano(), IdLength:IdLength}
+	txobj2 := BBcTransaction{Version:1, Timestamp:time.Now().UnixNano(), IdLength:defaultIdLength}
 	t.Run("simple creation (with event)", func(t *testing.T) {
 		keypair := GenerateKeypair(KeyType_ECDSA_P256v1, defaultCompressionMode)
 		evt := BBcEvent{}
@@ -94,21 +107,21 @@ func TestTransactionPackUnpack(t *testing.T) {
 		wit := BBcWitness{}
 		txobj2.AddWitness(&wit)
 
-		ast := BBcAsset{IdLength:IdLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", IdLength)
+		ast := BBcAsset{IdLength:defaultIdLength}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", IdLength)
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
 		evt.Add(&assetgroup, &ast)
 
-		u2 := GetIdentifierWithTimestamp("user2", IdLength)
+		u2 := GetIdentifierWithTimestamp("user2", defaultIdLength)
 		evt.AddMandatoryApprover(&u1)
 		evt.AddMandatoryApprover(&u2)
 		evt.AddOptionParams(2, 1)
 
-		dom := GetIdentifier("dummy domain", IdLength)
-		dummyTxid := GetIdentifierWithTimestamp("dummytxid", IdLength)
+		dom := GetIdentifier("dummy domain", defaultIdLength)
+		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIdLength)
 		crs.Add(&dom, &dummyTxid)
 
 		wit.AddWitness(&u1)
@@ -143,7 +156,7 @@ func TestTransactionPackUnpack(t *testing.T) {
 
 	t.Run("simple creation (with event/reference)", func(t *testing.T) {
 		keypair := GenerateKeypair(KeyType_ECDSA_P256v1, defaultCompressionMode)
-		txobj3 := BBcTransaction{Version:1, Timestamp:time.Now().UnixNano(), IdLength:IdLength}
+		txobj3 := BBcTransaction{Version:1, Timestamp:time.Now().UnixNano(), IdLength:defaultIdLength}
 		evt := BBcEvent{}
 		txobj3.AddEvent(&evt)
 		ref := BBcReference{}
@@ -151,15 +164,15 @@ func TestTransactionPackUnpack(t *testing.T) {
 		crs := BBcCrossRef{}
 		txobj3.AddCrossRef(&crs)
 
-		ast := BBcAsset{IdLength:IdLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", IdLength)
+		ast := BBcAsset{IdLength:defaultIdLength}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", IdLength)
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
 		evt.Add(&assetgroup, &ast)
 
-		u2 := GetIdentifierWithTimestamp("user2", IdLength)
+		u2 := GetIdentifierWithTimestamp("user2", defaultIdLength)
 		evt.AddMandatoryApprover(&u1)
 		evt.AddMandatoryApprover(&u2)
 		evt.AddOptionParams(2, 1)
@@ -168,8 +181,8 @@ func TestTransactionPackUnpack(t *testing.T) {
 		ref.AddApprover(&u1)
 		ref.AddApprover(&u2)
 
-		dom := GetIdentifier("dummy domain", IdLength)
-		dummyTxid := GetIdentifierWithTimestamp("dummytxid", IdLength)
+		dom := GetIdentifier("dummy domain", defaultIdLength)
+		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIdLength)
 		crs.Add(&dom, &dummyTxid)
 
 		sig := BBcSignature{}

@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2018 Zettant Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ */
+
 package bbclib
 
 import (
@@ -5,25 +21,22 @@ import (
 	"testing"
 )
 
-var (
-	idLength = 32
-)
 
 func TestEventPackUnpack(t *testing.T) {
 	t.Run("simple creation (string asset)", func(t *testing.T) {
-		ast := BBcAsset{IdLength:idLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", idLength)
+		ast := BBcAsset{IdLength:defaultIdLength}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
-		obj := BBcEvent{IdLength:idLength}
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", idLength)
+		obj := BBcEvent{IdLength:defaultIdLength}
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
 		obj.Add(&assetgroup, &ast)
 		obj.AddReferenceIndex(1)
 		obj.AddReferenceIndex(2)
 
-		u2 := GetIdentifierWithTimestamp("user2", idLength)
-		u3 := GetIdentifierWithTimestamp("user3", idLength)
+		u2 := GetIdentifierWithTimestamp("user2", defaultIdLength)
+		u3 := GetIdentifierWithTimestamp("user3", defaultIdLength)
 		obj.AddMandatoryApprover(&u1)
 		obj.AddMandatoryApprover(&u2)
 		obj.AddOptionApprover(&u3)
@@ -40,7 +53,7 @@ func TestEventPackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcEvent{IdLength:idLength}
+		obj2 := BBcEvent{IdLength:defaultIdLength}
 		obj2.Unpack(&dat)
 		t.Log("--------------------------------------")
 		t.Logf("id_length: %d", obj2.IdLength)
@@ -53,13 +66,13 @@ func TestEventPackUnpack(t *testing.T) {
 	})
 
 	t.Run("simple creation (no approvers)", func(t *testing.T) {
-		ast := BBcAsset{IdLength:idLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", idLength)
+		ast := BBcAsset{IdLength:defaultIdLength}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
-		obj := BBcEvent{IdLength:idLength}
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", idLength)
+		obj := BBcEvent{IdLength:defaultIdLength}
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
 		obj.Add(&assetgroup, &ast)
 
 		t.Log("---------------Event-----------------")
@@ -73,7 +86,7 @@ func TestEventPackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcEvent{IdLength:idLength}
+		obj2 := BBcEvent{IdLength:defaultIdLength}
 		obj2.Unpack(&dat)
 		t.Log("--------------------------------------")
 		t.Logf("id_length: %d", obj2.IdLength)

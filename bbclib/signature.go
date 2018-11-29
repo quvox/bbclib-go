@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2018 Zettant Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ */
+
 package bbclib
 
 import "C"
@@ -7,6 +23,11 @@ import (
 	"fmt"
 )
 
+/*
+This is the BBcSignature definition.
+
+The BBcSignature holds public key and signature. The signature is for the TransactionId of the transaction object.
+ */
 type (
 	BBcSignature struct {
 		KeyType 		uint32
@@ -17,7 +38,7 @@ type (
 	}
 )
 
-
+// Output content of the object
 func (p *BBcSignature) Stringer() string {
 	if p.KeyType == KeyType_NOT_INITIALIZED {
 		return "  Not initialized\n"
@@ -28,28 +49,32 @@ func (p *BBcSignature) Stringer() string {
 	return ret
 }
 
+// Set signature binary in the object
 func (p *BBcSignature) SetPublicKey(keyType uint32, pubkey *[]byte) {
 	p.KeyType = keyType
 	p.Pubkey = *pubkey
 	p.PubkeyLen = uint32(len(p.Pubkey) * 8)
 }
 
+// Set public key (keypair object) in the object
 func (p *BBcSignature) SetPublicKeyByKeypair(keypair *KeyPair) {
 	p.KeyType = uint32(keypair.CurveType)
 	p.Pubkey = keypair.Pubkey
 	p.PubkeyLen = uint32(len(p.Pubkey) * 8)
 }
 
+// Set signature binary in the object
 func (p *BBcSignature) SetSignature(sig *[]byte) {
 	p.Signature = *sig
 	p.SignatureLen = uint32(len(p.Signature) * 8)
 }
 
-
+// Verify the TransactionId of the parent BBcTransaction object with the signature in the object
 func (p *BBcSignature) Verify(digest []byte) bool {
 	return VerifyBBcSignature(digest, p)
 }
 
+// Pack BBcSignature object in binary data
 func (p *BBcSignature) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -71,7 +96,7 @@ func (p *BBcSignature) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-
+// Unpack binary data to BBcSignature object
 func (p *BBcSignature) Unpack(dat []byte) error {
 	var err error
 	buf := bytes.NewBuffer(dat)

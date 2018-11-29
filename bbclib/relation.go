@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2018 Zettant Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ */
+
 package bbclib
 
 import (
@@ -6,6 +22,18 @@ import (
 	"fmt"
 )
 
+/*
+This is the BBcRelation definition.
+
+The BBcRelation holds the asset (by BBcAsset) and the relationship with the other transaction/asset (by BBcPointer).
+Different from UTXO, state information or account-type information can be expressed by using this object.
+If you want to include signature(s) according to the contents of BBcRelation object, BBcWitness should be included in the transaction object.
+
+"AssetGroupId" distinguishes a type of asset, e.g., token-X, token-Y, Movie content, etc..
+"Pointers" is a list of BBcPointers object. "Asset" is a BBcAsset object.
+
+"IdLength" is not included in a packed data. It is for internal use only.
+ */
 type (
 	BBcRelation struct {
 		IdLength		int
@@ -15,7 +43,7 @@ type (
 	}
 )
 
-
+// Output content of the object
 func (p *BBcRelation) Stringer() string {
 	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupId)
 	if p.Pointers != nil {
@@ -35,7 +63,7 @@ func (p *BBcRelation) Stringer() string {
 	return ret
 }
 
-
+// Add essential information (assetGroupId and BBcAsset object) to the BBcRelation object
 func (p *BBcRelation) Add(assetGroupId *[]byte, asset *BBcAsset) {
 	if assetGroupId != nil {
 		p.AssetGroupId = make([]byte, p.IdLength)
@@ -47,12 +75,13 @@ func (p *BBcRelation) Add(assetGroupId *[]byte, asset *BBcAsset) {
 	}
 }
 
+// Add BBcPointer object in the object
 func (p *BBcRelation) AddPointer(pointer *BBcPointer) {
 	pointer.IdLength = p.IdLength
 	p.Pointers = append(p.Pointers, pointer)
 }
 
-
+// Pack BBcRelation object in binary data
 func (p *BBcRelation) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -84,7 +113,7 @@ func (p *BBcRelation) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-
+// Unpack binary data to BBcRelation object
 func (p *BBcRelation) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)
