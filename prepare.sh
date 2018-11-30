@@ -12,9 +12,9 @@ elif [[ $1 == "aws" ]]; then
 fi
 
 if [[ -f "lib/libbbcsig.dylib" ]]; then
-    cp lib/libbbcsig.dylib ../bbclib/
+    cp lib/libbbcsig.dylib ../
 elif [[ -f "lib/libbbcsig.so" ]]; then
-    cp lib/libbbcsig.so ../bbclib/
+    cp lib/libbbcsig.so ../
 fi
-cp lib/libbbcsig.h ../bbclib/
+cp lib/libbbcsig.h ../
 

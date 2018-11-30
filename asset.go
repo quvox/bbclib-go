@@ -185,7 +185,6 @@ func (p *BBcAsset) Pack() ([]byte, error) {
 			return nil, err
 		}
 	}
-	fmt.Printf("packed: %x\n", buf.Bytes())
 	return buf.Bytes(), nil
 }
 
