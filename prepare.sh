@@ -16,5 +16,6 @@ if [[ -f "lib/libbbcsig.dylib" ]]; then
 elif [[ -f "lib/libbbcsig.so" ]]; then
     cp lib/libbbcsig.so ../
 fi
+cp lib/libbbcsig.a ../
 cp lib/libbbcsig.h ../
 

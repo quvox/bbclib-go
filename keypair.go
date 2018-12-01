@@ -18,7 +18,7 @@ package bbclib
 
 /*
 #cgo CFLAGS: -I.
-#cgo LDFLAGS: -L. -lbbcsig -ldl
+#cgo LDFLAGS: ${SRCDIR}/libbbcsig.a
 #include "libbbcsig.h"
 */
 import "C"
