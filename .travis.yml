@@ -6,11 +6,7 @@ go:
 before_install:
   - go get github.com/mattn/goveralls
   - bash prepare.sh
-  - pwd
-  - ls -l
-  - ls -l libs/lib/
 script:
-  - pwd
-  - ls -a
   - $GOPATH/bin/goveralls -service=travis-ci
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
   - bash <(curl -s https://codecov.io/bash)
