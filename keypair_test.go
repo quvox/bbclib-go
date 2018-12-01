@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -20,7 +20,6 @@ import (
 	"crypto/sha256"
 	"testing"
 )
-
 
 func TestGenerateKeypair(t *testing.T) {
 	for curvetype := 1; curvetype < 3; curvetype++ {
@@ -33,7 +32,6 @@ func TestGenerateKeypair(t *testing.T) {
 		})
 	}
 }
-
 
 func TestKeyPair_Sign_and_Verify(t *testing.T) {
 	digest := sha256.Sum256([]byte("aaaaaaaaaaa"))
@@ -57,7 +55,7 @@ func TestKeyPair_Sign_and_Verify(t *testing.T) {
 				t.Fatal("fail to sign")
 			}
 			result := keypair.Verify(digest[:], sig1)
-			if ! result {
+			if !result {
 				t.Fatal("fail to verify")
 			}
 			t.Log("[sig1] Verify succeeded")
@@ -67,7 +65,6 @@ func TestKeyPair_Sign_and_Verify(t *testing.T) {
 			}
 			t.Log("[invalid digest] Verify failed as expected")
 
-
 			t.Logf("privkey2  : %x\n", keypair2.Privkey)
 			sig2 := keypair2.Sign(digest[:])
 			t.Logf("signature2: %x\n", sig2)
@@ -75,7 +72,7 @@ func TestKeyPair_Sign_and_Verify(t *testing.T) {
 				t.Fatal("fail to sign")
 			}
 			result = keypair2.Verify(digest[:], sig2)
-			if ! result {
+			if !result {
 				t.Fatal("fail to verify")
 			}
 			t.Log("[sig2] Verify succeeded")
@@ -84,7 +81,6 @@ func TestKeyPair_Sign_and_Verify(t *testing.T) {
 				t.Fatal("[invalid digest] Verify returns true but not correct...")
 			}
 			t.Log("[invalid digest] Verify failed as expected")
-
 
 			result = keypair2.Verify(digest[:], sig1)
 			if result {
@@ -100,7 +96,6 @@ func TestKeyPair_Sign_and_Verify(t *testing.T) {
 	}
 }
 
-
 func TestVerifyBBcSignature(t *testing.T) {
 	digest := sha256.Sum256([]byte("aaaaaaaaaaa"))
 
@@ -112,13 +107,13 @@ func TestVerifyBBcSignature(t *testing.T) {
 			signature := keypair.Sign(digest[:])
 			sig.SetSignature(&signature)
 			result1 := keypair.Verify(digest[:], sig.Signature)
-			if ! result1 {
+			if !result1 {
 				t.Fatal("fail to verify")
 			}
 			t.Log("Verify succeeded")
 
 			result := VerifyBBcSignature(digest[:], &sig)
-			if ! result {
+			if !result {
 				t.Fatal("fail to verify")
 			}
 			t.Log("Verify succeeded")
@@ -137,10 +132,9 @@ func TestVerifyBBcSignature(t *testing.T) {
 	}
 }
 
-
 func TestKeyPair_ConvertFromPem(t *testing.T) {
 	pem := "-----BEGIN EC PRIVATE KEY-----\nMHQCAQEEIIMVMPKLJqivgRDpRDaWJCOnob6s/+t4MdoFN/8PVkNSoAcGBSuBBAAK\noUQDQgAE/k1ZM/Ker1+N0+Lg5za0sJZeSAAeYwDEWnkgnkCynErs74G/tAnu/lcu\nk8kzAivYm8mitIpJJw1OdjCDJI457g==\n-----END EC PRIVATE KEY-----"
-	keypair := KeyPair{CurveType: KeyType_ECDSA_SECP256k1}
+	keypair := KeyPair{CurveType: KeyTypeEcdsaSECP256k1}
 	keypair.ConvertFromPem(pem, defaultCompressionMode)
 	t.Logf("keypair: %v", keypair)
 

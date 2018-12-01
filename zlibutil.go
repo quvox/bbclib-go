@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -26,11 +26,12 @@ import (
 func ZlibCompress(dat *[]byte) []byte {
 	var dstbbuf bytes.Buffer
 	zlibwriter := zlib.NewWriter(&dstbbuf)
-	zlibwriter.Write(*dat)
+	if _, err := zlibwriter.Write(*dat); err != nil {
+		return nil
+	}
 	zlibwriter.Close()
 	return dstbbuf.Bytes()
 }
-
 
 // Decompress given data using zlib
 func ZlibDecompress(dat []byte) ([]byte, error) {

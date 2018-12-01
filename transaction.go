@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -33,9 +33,9 @@ BBcTransaction is just a container of various objects.
 Events, References, Relations and Signatures are list of BBcEvent, BBcReference, BBcRelation and BBcSignature objects, respectively.
 "digestCalculating", "TransactionBaseDigest", "TransactionData" and "SigIndices" are not included in the packed data. They are internal use only.
 
-Calculating TransactionId
+Calculating TransactionID
 
-How to calculate the TransactionId of the transaction is a little bit complicated, meaning that 2-step manner.
+How to calculate the TransactionID of the transaction is a little bit complicated, meaning that 2-step manner.
 This is because inter-domain transaction authenticity (i.e., CrossReference) can be conducted in secure manner.
 By presenting TransactionBaseDigest (see below) to an outer-domain, the domain user can confirm the existence of the transaction in the past.
 (no need to present whole transaction data including the asset information).
@@ -47,37 +47,36 @@ By presenting TransactionBaseDigest (see below) to an outer-domain, the domain u
 2nd step:
   * Pack BBcCrossRef object to get packed data by packCrossRef()
   * Concatenate TransactionBaseDigest and the packed BBcCrossRef
-  * Calculate SHA256 digest of the concatenated data. This value is TransactionId
- */
+  * Calculate SHA256 digest of the concatenated data. This value is TransactionID
+*/
 type (
 	BBcTransaction struct {
-		digestCalculating bool
-		TransactionId	[]byte
-		TransactionBaseDigest	[]byte
-		TransactionData	[]byte
-		SigIndices		[][]byte
-		Version 		uint32
-		Timestamp 		int64
-		IdLength 		int
-		Events 			[]*BBcEvent
-		References 		[]*BBcReference
-		Relations 		[]*BBcRelation
-		Witness 		*BBcWitness
-		Crossref		*BBcCrossRef
-		Signatures		[]*BBcSignature
+		digestCalculating     bool
+		TransactionID         []byte
+		TransactionBaseDigest []byte
+		TransactionData       []byte
+		SigIndices            [][]byte
+		Version               uint32
+		Timestamp             int64
+		IDLength              int
+		Events                []*BBcEvent
+		References            []*BBcReference
+		Relations             []*BBcRelation
+		Witness               *BBcWitness
+		Crossref              *BBcCrossRef
+		Signatures            []*BBcSignature
 	}
 )
-
 
 // Output content of the object
 func (p *BBcTransaction) Stringer() string {
 	var ret string
-	ret =  "------- Dump of the transaction data ------\n"
-	ret += fmt.Sprintf("* transaction_id: %x\n", p.TransactionId)
+	ret = "------- Dump of the transaction data ------\n"
+	ret += fmt.Sprintf("* transaction_id: %x\n", p.TransactionID)
 	ret += fmt.Sprintf("version: %d\n", p.Version)
 	ret += fmt.Sprintf("timestamp: %d\n", p.Timestamp)
 	if p.Version != 0 {
-		ret += fmt.Sprintf("id_length: %d\n", p.IdLength)
+		ret += fmt.Sprintf("id_length: %d\n", p.IDLength)
 	}
 
 	ret += fmt.Sprintf("Event[]: %d\n", len(p.Events))
@@ -120,93 +119,93 @@ func (p *BBcTransaction) Stringer() string {
 
 // Add BBcEvent object in the transaction object
 func (p *BBcTransaction) AddEvent(obj *BBcEvent) {
-	obj.IdLength = p.IdLength
+	obj.IDLength = p.IDLength
 	p.Events = append(p.Events, obj)
 }
 
 // Add BBcReference object in the transaction object
 func (p *BBcTransaction) AddReference(obj *BBcReference) {
-	obj.IdLength = p.IdLength
+	obj.IDLength = p.IDLength
 	p.References = append(p.References, obj)
 	obj.Transaction = p
 }
 
 // Add BBcRelation object in the transaction object
 func (p *BBcTransaction) AddRelation(obj *BBcRelation) {
-	obj.IdLength = p.IdLength
+	obj.IDLength = p.IDLength
 	p.Relations = append(p.Relations, obj)
 }
 
 // Add BBcWitness object in the transaction object
 func (p *BBcTransaction) AddWitness(obj *BBcWitness) {
-	obj.IdLength = p.IdLength
+	obj.IDLength = p.IDLength
 	p.Witness = obj
 	obj.Transaction = p
 }
 
 // Add BBcCrossRef object in the transaction object
 func (p *BBcTransaction) AddCrossRef(obj *BBcCrossRef) {
-	obj.IdLength = p.IdLength
+	obj.IDLength = p.IDLength
 	p.Crossref = obj
 }
 
-// Add BBcSignature object for the specified userId in the transaction object
-func (p *BBcTransaction) AddSignature(userId *[]byte, sig *BBcSignature) {
+// Add BBcSignature object for the specified userID in the transaction object
+func (p *BBcTransaction) AddSignature(userID *[]byte, sig *BBcSignature) {
 	for i := range p.SigIndices {
-		if reflect.DeepEqual(p.SigIndices[i], userId) {
+		if reflect.DeepEqual(p.SigIndices[i], userID) {
 			p.Signatures[i] = sig
 			return
 		}
 	}
-	uid := make([]byte, int(p.IdLength))
-	copy(uid, *userId)
+	uid := make([]byte, int(p.IDLength))
+	copy(uid, *userID)
 	p.SigIndices = append(p.SigIndices, uid)
 	p.Signatures = append(p.Signatures, sig)
 }
 
-// Get position (index) of the corespondent userId in the signature list
-func (p *BBcTransaction) GetSigIndex(userId []byte) int {
+// Get position (index) of the corespondent userID in the signature list
+func (p *BBcTransaction) GetSigIndex(userID []byte) int {
 	var i = -1
 	for i = range p.SigIndices {
-		if reflect.DeepEqual(p.SigIndices[i], userId) {
+		if reflect.DeepEqual(p.SigIndices[i], userID) {
 			return i
 		}
 	}
-	p.SigIndices = append(p.SigIndices, userId)
+	p.SigIndices = append(p.SigIndices, userID)
 	return i + 1
 }
 
-// Sign TransactionId using private key in the given keypair
+// Sign TransactionID using private key in the given keypair
 func (p *BBcTransaction) Sign(keypair *KeyPair) ([]byte, error) {
-	if p.TransactionId == nil {
+	if p.TransactionID == nil {
 		p.Digest()
 	}
-	signature := keypair.Sign(p.TransactionId)
+	signature := keypair.Sign(p.TransactionID)
 	if signature == nil {
 		return nil, errors.New("fail to sign")
 	}
 	return signature, nil
 }
 
-// Verify TransactionId with all BBcSignature objects in the transaction
+// Verify TransactionID with all BBcSignature objects in the transaction
 func (p *BBcTransaction) VerifyAll() (bool, int) {
 	digest := p.Digest()
 	for i := range p.Signatures {
-		if p.Signatures[i].KeyType == KeyType_NOT_INITIALIZED {
+		if p.Signatures[i].KeyType == KeyTypeNotInitialized {
 			continue
 		}
-		if ret := VerifyBBcSignature(digest, p.Signatures[i]); ! ret {
+		if ret := VerifyBBcSignature(digest, p.Signatures[i]); !ret {
 			return false, i
 		}
 	}
 	return true, -1
 }
 
-// Calculate TransactionId of the BBcTransaction object
+// Calculate TransactionID of the BBcTransaction object
 func (p *BBcTransaction) Digest() []byte {
 	p.digestCalculating = true
-	if p.TransactionId == nil {
-		p.TransactionId = make([]byte, p.IdLength)
+	if p.TransactionID == nil {
+		p.TransactionID = make([]byte, p.IDLength)
 	}
 	buf := new(bytes.Buffer)
 
@@ -217,7 +216,7 @@ func (p *BBcTransaction) Digest() []byte {
 	}
 
 	buf = new(bytes.Buffer)
-	if err := binary.Write(buf, binary.LittleEndian, p.TransactionBaseDigest); err != nil {
+	if err = binary.Write(buf, binary.LittleEndian, p.TransactionBaseDigest); err != nil {
 		p.digestCalculating = false
 		return nil
 	}
@@ -229,7 +228,7 @@ func (p *BBcTransaction) Digest() []byte {
 	}
 
 	digest := sha256.Sum256(buf.Bytes())
-	p.TransactionId = digest[:p.IdLength]
+	p.TransactionID = digest[:p.IDLength]
 	p.digestCalculating = false
 	return digest[:]
 }
@@ -256,7 +255,7 @@ func (p *BBcTransaction) packCrossRef(buf *bytes.Buffer) error {
 func (p *BBcTransaction) packBase(buf *bytes.Buffer) error {
 	Put4byte(buf, p.Version)
 	Put8byte(buf, p.Timestamp)
-	Put2byte(buf, uint16(p.IdLength))
+	Put2byte(buf, uint16(p.IDLength))
 
 	Put2byte(buf, uint16(len(p.Events)))
 	for _, obj := range p.Events {
@@ -316,7 +315,7 @@ func (p *BBcTransaction) packBase(buf *bytes.Buffer) error {
 
 // Pack BBcTransaction object in binary data
 func (p *BBcTransaction) Pack() ([]byte, error) {
-	if ! p.digestCalculating && p.TransactionId == nil {
+	if !p.digestCalculating && p.TransactionID == nil {
 		p.Digest()
 	}
 
@@ -369,75 +368,105 @@ func (p *BBcTransaction) Unpack(dat *[]byte) error {
 	if err != nil {
 		return err
 	}
-	p.IdLength = int(idLen)
+	p.IDLength = int(idLen)
 
 	num, err := Get2byte(buf)
+	if err != nil {
+		return err
+	}
 	for i := 0; i < int(num); i++ {
-		plen, err := Get4byte(buf)
-		if err != nil {
-			return err
+		size, err2 := Get4byte(buf)
+		if err2 != nil {
+			return err2
 		}
-		dat, err := GetBytes(buf, int(plen))
-		obj := BBcEvent{IdLength:p.IdLength}
-		obj.Unpack(&dat)
+		data, err2 := GetBytes(buf, int(size))
+		if err2 != nil {
+			return err2
+		}
+		obj := BBcEvent{IDLength: p.IDLength}
+		obj.Unpack(&data)
 		p.Events = append(p.Events, &obj)
 	}
 
 	num, err = Get2byte(buf)
+	if err != nil {
+		return err
+	}
 	for i := 0; i < int(num); i++ {
-		plen, err := Get4byte(buf)
-		if err != nil {
-			return err
+		size, err2 := Get4byte(buf)
+		if err2 != nil {
+			return err2
 		}
-		dat, err := GetBytes(buf, int(plen))
-		obj := BBcReference{IdLength:p.IdLength}
-		obj.Unpack(&dat)
+		data, err2 := GetBytes(buf, int(size))
+		if err2 != nil {
+			return err2
+		}
+		obj := BBcReference{IDLength: p.IDLength}
+		obj.Unpack(&data)
 		p.References = append(p.References, &obj)
 	}
 
 	num, err = Get2byte(buf)
+	if err != nil {
+		return err
+	}
 	for i := 0; i < int(num); i++ {
-		plen, err := Get4byte(buf)
-		if err != nil {
-			return err
+		size, err2 := Get4byte(buf)
+		if err2 != nil {
+			return err2
 		}
-		dat, err := GetBytes(buf, int(plen))
-		obj := BBcRelation{IdLength:p.IdLength}
-		obj.Unpack(&dat)
+		data, _ := GetBytes(buf, int(size))
+		obj := BBcRelation{IDLength: p.IDLength}
+		obj.Unpack(&data)
 		p.Relations = append(p.Relations, &obj)
 	}
 
 	num, err = Get2byte(buf)
+	if err != nil {
+		return err
+	}
 	if num > 0 {
-		size, err := Get4byte(buf)
-		dat, err := GetBytes(buf, int(size))
-		if err != nil {
-			return err
+		size, err2 := Get4byte(buf)
+		if err2 != nil {
+			return err2
 		}
-		p.Witness = &BBcWitness{IdLength:p.IdLength}
-		p.Witness.Unpack(&dat)
+		data, _ := GetBytes(buf, int(size))
+		p.Witness = &BBcWitness{IDLength: p.IDLength}
+		p.Witness.Unpack(&data)
 	}
 
 	num, err = Get2byte(buf)
+	if err != nil {
+		return err
+	}
 	if num > 0 {
-		size, err := Get4byte(buf)
-		dat, err := GetBytes(buf, int(size))
-		if err != nil {
-			return err
+		size, err2 := Get4byte(buf)
+		if err2 != nil {
+			return err2
 		}
-		p.Crossref = &BBcCrossRef{IdLength:p.IdLength}
+		dat, err2 := GetBytes(buf, int(size))
+		if err2 != nil {
+			return err2
+		}
+		p.Crossref = &BBcCrossRef{IDLength: p.IDLength}
 		p.Crossref.Unpack(&dat)
 	}
 
 	num, err = Get2byte(buf)
+	if err != nil {
+		return err
+	}
 	for i := 0; i < int(num); i++ {
-		plen, err := Get4byte(buf)
-		if err != nil {
-			return err
+		size, err2 := Get4byte(buf)
+		if err2 != nil {
+			return err2
 		}
-		dat, err := GetBytes(buf, int(plen))
+		data, err2 := GetBytes(buf, int(size))
+		if err2 != nil {
+			return err2
+		}
 		obj := BBcSignature{}
-		obj.Unpack(dat)
+		obj.Unpack(&data)
 		p.Signatures = append(p.Signatures, &obj)
 	}
 

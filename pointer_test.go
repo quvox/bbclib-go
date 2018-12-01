@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -21,15 +21,14 @@ import (
 	"testing"
 )
 
-
 func TestPointerPackUnpack(t *testing.T) {
 	t.Run("simple creation", func(t *testing.T) {
-		obj := BBcPointer{IdLength:defaultIdLength}
-		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", defaultIdLength)
-		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", defaultIdLength)
+		obj := BBcPointer{IDLength: defaultIDLength}
+		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", defaultIDLength)
+		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", defaultIDLength)
 		obj.Add(&txid1, &asid1)
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", obj.IdLength)
+		t.Logf("id_length: %d", obj.IDLength)
 		t.Logf("%v", obj.Stringer())
 		t.Log("--------------------------------------")
 
@@ -39,25 +38,25 @@ func TestPointerPackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcPointer{IdLength:defaultIdLength}
+		obj2 := BBcPointer{IDLength: defaultIDLength}
 		obj2.Unpack(&dat)
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", obj2.IdLength)
+		t.Logf("id_length: %d", obj2.IDLength)
 		t.Logf("%v", obj2.Stringer())
 		t.Log("--------------------------------------")
 
-		if bytes.Compare(obj.TransactionId, obj2.TransactionId) != 0 || bytes.Compare(obj.AssetId, obj2.AssetId) != 0 {
+		if bytes.Compare(obj.TransactionID, obj2.TransactionID) != 0 || bytes.Compare(obj.AssetID, obj2.AssetID) != 0 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})
 
 	t.Run("simple creation (asset_id is nil)", func(t *testing.T) {
-		obj := BBcPointer{IdLength:defaultIdLength}
-		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", defaultIdLength)
-		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", defaultIdLength)
+		obj := BBcPointer{IDLength: defaultIDLength}
+		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", defaultIDLength)
+		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", defaultIDLength)
 		obj.Add(&txid1, &asid1)
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", obj.IdLength)
+		t.Logf("id_length: %d", obj.IDLength)
 		t.Logf("%v", obj.Stringer())
 		t.Log("--------------------------------------")
 
@@ -67,14 +66,14 @@ func TestPointerPackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcPointer{IdLength:defaultIdLength}
+		obj2 := BBcPointer{IDLength: defaultIDLength}
 		obj2.Unpack(&dat)
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", obj2.IdLength)
+		t.Logf("id_length: %d", obj2.IDLength)
 		t.Logf("%v", obj2.Stringer())
 		t.Log("--------------------------------------")
 
-		if bytes.Compare(obj.TransactionId, obj2.TransactionId) != 0 || bytes.Compare(obj.AssetId, obj2.AssetId) != 0 {
+		if bytes.Compare(obj.TransactionID, obj2.TransactionID) != 0 || bytes.Compare(obj.AssetID, obj2.AssetID) != 0 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})

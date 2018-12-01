@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -29,23 +29,23 @@ The BBcRelation holds the asset (by BBcAsset) and the relationship with the othe
 Different from UTXO, state information or account-type information can be expressed by using this object.
 If you want to include signature(s) according to the contents of BBcRelation object, BBcWitness should be included in the transaction object.
 
-"AssetGroupId" distinguishes a type of asset, e.g., token-X, token-Y, Movie content, etc..
+"AssetGroupID" distinguishes a type of asset, e.g., token-X, token-Y, Movie content, etc..
 "Pointers" is a list of BBcPointers object. "Asset" is a BBcAsset object.
 
-"IdLength" is not included in a packed data. It is for internal use only.
- */
+"IDLength" is not included in a packed data. It is for internal use only.
+*/
 type (
 	BBcRelation struct {
-		IdLength		int
-		AssetGroupId	[]byte
-		Pointers 		[]*BBcPointer
-		Asset 			*BBcAsset
+		IDLength     int
+		AssetGroupID []byte
+		Pointers     []*BBcPointer
+		Asset        *BBcAsset
 	}
 )
 
 // Output content of the object
 func (p *BBcRelation) Stringer() string {
-	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupId)
+	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupID)
 	if p.Pointers != nil {
 		ret += fmt.Sprintf("  Pointers[]: %d\n", len(p.Pointers))
 		for i := range p.Pointers {
@@ -63,21 +63,21 @@ func (p *BBcRelation) Stringer() string {
 	return ret
 }
 
-// Add essential information (assetGroupId and BBcAsset object) to the BBcRelation object
-func (p *BBcRelation) Add(assetGroupId *[]byte, asset *BBcAsset) {
-	if assetGroupId != nil {
-		p.AssetGroupId = make([]byte, p.IdLength)
-		copy(p.AssetGroupId, *assetGroupId)
+// Add essential information (assetGroupID and BBcAsset object) to the BBcRelation object
+func (p *BBcRelation) Add(assetGroupID *[]byte, asset *BBcAsset) {
+	if assetGroupID != nil {
+		p.AssetGroupID = make([]byte, p.IDLength)
+		copy(p.AssetGroupID, *assetGroupID)
 	}
 	if asset != nil {
 		p.Asset = asset
-		p.Asset.IdLength = p.IdLength
+		p.Asset.IDLength = p.IDLength
 	}
 }
 
 // Add BBcPointer object in the object
 func (p *BBcRelation) AddPointer(pointer *BBcPointer) {
-	pointer.IdLength = p.IdLength
+	pointer.IDLength = p.IDLength
 	p.Pointers = append(p.Pointers, pointer)
 }
 
@@ -85,7 +85,7 @@ func (p *BBcRelation) AddPointer(pointer *BBcPointer) {
 func (p *BBcRelation) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
-	PutBigInt(buf, &p.AssetGroupId, p.IdLength)
+	PutBigInt(buf, &p.AssetGroupID, p.IDLength)
 
 	Put2byte(buf, uint16(len(p.Pointers)))
 	for _, p := range p.Pointers {
@@ -118,19 +118,22 @@ func (p *BBcRelation) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)
 
-	p.AssetGroupId, err = GetBigInt(buf)
+	p.AssetGroupID, err = GetBigInt(buf)
 	if err != nil {
 		return err
 	}
 
 	numPointers, err := Get2byte(buf)
+	if err != nil {
+		return err
+	}
 	for i := 0; i < int(numPointers); i++ {
-		plen, err := Get2byte(buf)
-		if err != nil {
-			return err
+		size, err2 := Get2byte(buf)
+		if err2 != nil {
+			return err2
 		}
-		ptr, err := GetBytes(buf, int(plen))
-		pointer := BBcPointer{IdLength:p.IdLength}
+		ptr, _ := GetBytes(buf, int(size))
+		pointer := BBcPointer{IDLength: p.IDLength}
 		pointer.Unpack(&ptr)
 		p.Pointers = append(p.Pointers, &pointer)
 	}
@@ -144,7 +147,7 @@ func (p *BBcRelation) Unpack(dat *[]byte) error {
 		if err != nil {
 			return err
 		}
-		p.Asset = &BBcAsset{IdLength:p.IdLength}
+		p.Asset = &BBcAsset{IDLength: p.IDLength}
 		p.Asset.Unpack(&ast)
 	}
 

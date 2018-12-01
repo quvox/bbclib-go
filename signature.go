@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -26,26 +26,26 @@ import (
 /*
 This is the BBcSignature definition.
 
-The BBcSignature holds public key and signature. The signature is for the TransactionId of the transaction object.
- */
+The BBcSignature holds public key and signature. The signature is for the TransactionID of the transaction object.
+*/
 type (
 	BBcSignature struct {
-		KeyType 		uint32
-		Pubkey 			[]byte
-		PubkeyLen 		uint32
-		Signature 		[]byte
-		SignatureLen 	uint32
+		KeyType      uint32
+		Pubkey       []byte
+		PubkeyLen    uint32
+		Signature    []byte
+		SignatureLen uint32
 	}
 )
 
 // Output content of the object
 func (p *BBcSignature) Stringer() string {
-	if p.KeyType == KeyType_NOT_INITIALIZED {
+	if p.KeyType == KeyTypeNotInitialized {
 		return "  Not initialized\n"
 	}
-	ret :=  fmt.Sprintf("  key_type: %d\n", p.KeyType)
-	ret +=  fmt.Sprintf("  signature: %x\n", p.Signature)
-	ret +=  fmt.Sprintf("  pubkey: %x\n", p.Pubkey)
+	ret := fmt.Sprintf("  key_type: %d\n", p.KeyType)
+	ret += fmt.Sprintf("  signature: %x\n", p.Signature)
+	ret += fmt.Sprintf("  pubkey: %x\n", p.Pubkey)
 	return ret
 }
 
@@ -69,7 +69,7 @@ func (p *BBcSignature) SetSignature(sig *[]byte) {
 	p.SignatureLen = uint32(len(p.Signature) * 8)
 }
 
-// Verify the TransactionId of the parent BBcTransaction object with the signature in the object
+// Verify the TransactionID of the parent BBcTransaction object with the signature in the object
 func (p *BBcSignature) Verify(digest []byte) bool {
 	return VerifyBBcSignature(digest, p)
 }
@@ -79,7 +79,7 @@ func (p *BBcSignature) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	Put4byte(buf, p.KeyType)
-	if p.KeyType == KeyType_NOT_INITIALIZED {
+	if p.KeyType == KeyTypeNotInitialized {
 		return buf.Bytes(), nil
 	}
 
@@ -97,9 +97,9 @@ func (p *BBcSignature) Pack() ([]byte, error) {
 }
 
 // Unpack binary data to BBcSignature object
-func (p *BBcSignature) Unpack(dat []byte) error {
+func (p *BBcSignature) Unpack(dat *[]byte) error {
 	var err error
-	buf := bytes.NewBuffer(dat)
+	buf := bytes.NewBuffer(*dat)
 
 	keyType, err := Get4byte(buf)
 	if err != nil {
@@ -115,14 +115,14 @@ func (p *BBcSignature) Unpack(dat []byte) error {
 		return err
 	}
 	p.Pubkey = make([]byte, int(p.PubkeyLen/8))
-	p.Pubkey, err =  GetBytes(buf, int(p.PubkeyLen/8))
+	p.Pubkey, _ = GetBytes(buf, int(p.PubkeyLen/8))
 
 	p.SignatureLen, err = Get4byte(buf)
 	if err != nil {
 		return err
 	}
 	p.Signature = make([]byte, int(p.SignatureLen/8))
-	p.Signature, err =  GetBytes(buf, int(p.SignatureLen/8))
+	p.Signature, _ = GetBytes(buf, int(p.SignatureLen/8))
 
 	return nil
 }

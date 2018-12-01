@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -21,9 +21,9 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
+	"fmt"
 	"time"
 )
-
 
 // Get random byte data with specified length (seed string ais used)
 func GetIdentifier(seed string, length int) []byte {
@@ -33,7 +33,7 @@ func GetIdentifier(seed string, length int) []byte {
 
 // Get random byte data with specified length (seed string and timestamp are used)
 func GetIdentifierWithTimestamp(seed string, length int) []byte {
-	digest := sha256.Sum256([]byte(seed+time.Now().String()))
+	digest := sha256.Sum256([]byte(seed + time.Now().String()))
 	return digest[:length]
 }
 
@@ -50,8 +50,10 @@ func GetRandomValue(length int) []byte {
 }
 
 // Put uint16 in the buffer for packing
-func Put2byte(buf *bytes.Buffer, val uint16) error{
-	return binary.Write(buf, binary.LittleEndian, val)
+func Put2byte(buf *bytes.Buffer, val uint16) {
+	if err := binary.Write(buf, binary.LittleEndian, val); err != nil {
+		fmt.Println("Error: Put2Byte")
+	}
 }
 
 // Get uint16 value from the buffer
@@ -64,8 +66,10 @@ func Get2byte(buf *bytes.Buffer) (uint16, error) {
 }
 
 // Put uint32 in the buffer for packing
-func Put4byte(buf *bytes.Buffer, val uint32) error{
-	return binary.Write(buf, binary.LittleEndian, val)
+func Put4byte(buf *bytes.Buffer, val uint32) {
+	if err := binary.Write(buf, binary.LittleEndian, val); err != nil {
+		fmt.Println("Error: Put4Byte")
+	}
 }
 
 // Get uint32 value from the buffer
@@ -78,8 +82,10 @@ func Get4byte(buf *bytes.Buffer) (uint32, error) {
 }
 
 // Put int64 in the buffer for packing
-func Put8byte(buf *bytes.Buffer, val int64) error{
-	return binary.Write(buf, binary.LittleEndian, val)
+func Put8byte(buf *bytes.Buffer, val int64) {
+	if err := binary.Write(buf, binary.LittleEndian, val); err != nil {
+		fmt.Println("Error: Put8byte")
+	}
 }
 
 // Get int64 value from the buffer
@@ -94,7 +100,9 @@ func Get8byte(buf *bytes.Buffer) (int64, error) {
 // Put ID data in the buffer for packing
 func PutBigInt(buf *bytes.Buffer, val *[]byte, length int) {
 	Put2byte(buf, uint16(length))
-	binary.Write(buf, binary.LittleEndian, val)
+	if err := binary.Write(buf, binary.LittleEndian, val); err != nil {
+		fmt.Println("Error: PutBigInt")
+	}
 }
 
 // Get ID data from the buffer

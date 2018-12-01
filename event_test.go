@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -21,29 +21,28 @@ import (
 	"testing"
 )
 
-
 func TestEventPackUnpack(t *testing.T) {
 	t.Run("simple creation (string asset)", func(t *testing.T) {
-		ast := BBcAsset{IdLength:defaultIdLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
+		ast := BBcAsset{IDLength: defaultIDLength}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
-		obj := BBcEvent{IdLength:defaultIdLength}
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
+		obj := BBcEvent{IDLength: defaultIDLength}
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIDLength)
 		obj.Add(&assetgroup, &ast)
 		obj.AddReferenceIndex(1)
 		obj.AddReferenceIndex(2)
 
-		u2 := GetIdentifierWithTimestamp("user2", defaultIdLength)
-		u3 := GetIdentifierWithTimestamp("user3", defaultIdLength)
+		u2 := GetIdentifierWithTimestamp("user2", defaultIDLength)
+		u3 := GetIdentifierWithTimestamp("user3", defaultIDLength)
 		obj.AddMandatoryApprover(&u1)
 		obj.AddMandatoryApprover(&u2)
 		obj.AddOptionApprover(&u3)
 		obj.AddOptionParams(2, 2)
 
 		t.Log("---------------Event-----------------")
-		t.Logf("id_length: %d", obj.IdLength)
+		t.Logf("id_length: %d", obj.IDLength)
 		t.Logf("%v", obj.Stringer())
 		t.Log("--------------------------------------")
 
@@ -53,30 +52,30 @@ func TestEventPackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcEvent{IdLength:defaultIdLength}
+		obj2 := BBcEvent{IDLength: defaultIDLength}
 		obj2.Unpack(&dat)
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", obj2.IdLength)
+		t.Logf("id_length: %d", obj2.IDLength)
 		t.Logf("%v", obj2.Stringer())
 		t.Log("--------------------------------------")
 
-		if bytes.Compare(obj.AssetGroupId, obj2.AssetGroupId) != 0 || bytes.Compare(obj.Asset.AssetId, obj2.Asset.AssetId) != 0 {
+		if bytes.Compare(obj.AssetGroupID, obj2.AssetGroupID) != 0 || bytes.Compare(obj.Asset.AssetID, obj2.Asset.AssetID) != 0 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})
 
 	t.Run("simple creation (no approvers)", func(t *testing.T) {
-		ast := BBcAsset{IdLength:defaultIdLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
+		ast := BBcAsset{IDLength: defaultIDLength}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
-		obj := BBcEvent{IdLength:defaultIdLength}
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
+		obj := BBcEvent{IDLength: defaultIDLength}
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIDLength)
 		obj.Add(&assetgroup, &ast)
 
 		t.Log("---------------Event-----------------")
-		t.Logf("id_length: %d", obj.IdLength)
+		t.Logf("id_length: %d", obj.IDLength)
 		t.Logf("%v", obj.Stringer())
 		t.Log("--------------------------------------")
 
@@ -86,14 +85,14 @@ func TestEventPackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcEvent{IdLength:defaultIdLength}
+		obj2 := BBcEvent{IDLength: defaultIDLength}
 		obj2.Unpack(&dat)
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", obj2.IdLength)
+		t.Logf("id_length: %d", obj2.IDLength)
 		t.Logf("%v", obj2.Stringer())
 		t.Log("--------------------------------------")
 
-		if bytes.Compare(obj.AssetGroupId, obj2.AssetGroupId) != 0 || bytes.Compare(obj.Asset.AssetId, obj2.Asset.AssetId) != 0 {
+		if bytes.Compare(obj.AssetGroupID, obj2.AssetGroupID) != 0 || bytes.Compare(obj.Asset.AssetID, obj2.Asset.AssetID) != 0 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})

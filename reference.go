@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -28,31 +28,31 @@ This is the BBcReference definition.
 
 The BBcReference is an input of UTXO (Unspent Transaction Output) structure and this object must accompanied by a BBcEvent object because it is an output of UTXO.
 
-"AssetGroupId" distinguishes a type of asset, e.g., token-X, token-Y, Movie content, etc..
-"TransactionId" is that of a certain transaction in the past. "EventIndexInRef" points to the BBcEvent object in the past BBcTransaction.
-"SigIndices" is a mapping info between userId and the position (index) of the signature list in the BBcTransaction object.
+"AssetGroupID" distinguishes a type of asset, e.g., token-X, token-Y, Movie content, etc..
+"TransactionID" is that of a certain transaction in the past. "EventIndexInRef" points to the BBcEvent object in the past BBcTransaction.
+"SigIndices" is a mapping info between userID and the position (index) of the signature list in the BBcTransaction object.
 
 "Transaction" is the pointer to the parent BBcTransaction object, and "RefTransaction" is the pointer to the past BBcTransaction object.
 
-"IdLength", "Transaction", "RefTransaction" and "RefEvent" are not included in a packed data. They are for internal use only.
- */
+"IDLength", "Transaction", "RefTransaction" and "RefEvent" are not included in a packed data. They are for internal use only.
+*/
 type (
 	BBcReference struct {
-		IdLength 			int
-		AssetGroupId 		[]byte
-		TransactionId 		[]byte
-		EventIndexInRef 	uint16
-		SigIndices 			[]int
-		Transaction			*BBcTransaction
-		RefTransaction		*BBcTransaction
-		RefEvent			BBcEvent
+		IDLength        int
+		AssetGroupID    []byte
+		TransactionID   []byte
+		EventIndexInRef uint16
+		SigIndices      []int
+		Transaction     *BBcTransaction
+		RefTransaction  *BBcTransaction
+		RefEvent        BBcEvent
 	}
 )
 
 // Output content of the object
 func (p *BBcReference) Stringer() string {
-	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupId)
-	ret += fmt.Sprintf("  transaction_id: %x\n", p.TransactionId)
+	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupID)
+	ret += fmt.Sprintf("  transaction_id: %x\n", p.TransactionID)
 	ret += fmt.Sprintf("  event_index_in_ref: %v\n", p.EventIndexInRef)
 	ret += fmt.Sprintf("  sig_indices: %v\n", p.SigIndices)
 	return ret
@@ -64,23 +64,23 @@ func (p *BBcReference) SetTransaction(txobj *BBcTransaction) {
 }
 
 // Add essential information to the BBcReference object
-func (p *BBcReference) Add(assetGroupId *[]byte, refTransaction *BBcTransaction, eventIdx int) {
-	if assetGroupId != nil {
-		p.AssetGroupId = make([]byte, p.IdLength)
-		copy(p.AssetGroupId, *assetGroupId)
+func (p *BBcReference) Add(assetGroupID *[]byte, refTransaction *BBcTransaction, eventIdx int) {
+	if assetGroupID != nil {
+		p.AssetGroupID = make([]byte, p.IDLength)
+		copy(p.AssetGroupID, *assetGroupID)
 	}
 	if eventIdx > -1 {
 		p.EventIndexInRef = uint16(eventIdx)
 	}
 	if refTransaction != nil {
 		p.RefTransaction = refTransaction
-		p.TransactionId = refTransaction.TransactionId[:p.IdLength]
+		p.TransactionID = refTransaction.TransactionID[:p.IDLength]
 		p.RefEvent = *p.RefTransaction.Events[p.EventIndexInRef]
 	}
 }
 
 // Make a memo for managing approvers who sign this BBcTransaction object
-func (p *BBcReference) AddApprover(userId *[]byte) error {
+func (p *BBcReference) AddApprover(userID *[]byte) error {
 	if p.Transaction == nil {
 		return errors.New("transaction must be set")
 	}
@@ -90,34 +90,34 @@ func (p *BBcReference) AddApprover(userId *[]byte) error {
 
 	flag := false
 	for _, m := range p.RefEvent.MandatoryApprovers {
-		if reflect.DeepEqual(m, userId) {
+		if reflect.DeepEqual(m, userID) {
 			flag = true
 			break
 		}
 	}
-	if ! flag {
+	if !flag {
 		for _, o := range p.RefEvent.OptionApprovers {
-			if reflect.DeepEqual(o, userId) {
+			if reflect.DeepEqual(o, userID) {
 				flag = true
 				break
 			}
 		}
 	}
-	if ! flag {
+	if !flag {
 		return errors.New("no user is specified as approver")
 	}
 
-	idx := p.Transaction.GetSigIndex(*userId)
+	idx := p.Transaction.GetSigIndex(*userID)
 	p.SigIndices = append(p.SigIndices, idx)
 	return nil
 }
 
 // Add BBcSignature object in the object
-func (p *BBcReference) AddSignature(userId *[]byte, sig *BBcSignature) error {
+func (p *BBcReference) AddSignature(userID *[]byte, sig *BBcSignature) error {
 	if p.Transaction == nil {
 		return errors.New("transaction must be set")
 	}
-	p.Transaction.AddSignature(userId, sig)
+	p.Transaction.AddSignature(userID, sig)
 	return nil
 }
 
@@ -125,8 +125,8 @@ func (p *BBcReference) AddSignature(userId *[]byte, sig *BBcSignature) error {
 func (p *BBcReference) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
-	PutBigInt(buf, &p.AssetGroupId, p.IdLength)
-	PutBigInt(buf, &p.TransactionId, p.IdLength)
+	PutBigInt(buf, &p.AssetGroupID, p.IDLength)
+	PutBigInt(buf, &p.TransactionID, p.IDLength)
 	Put2byte(buf, p.EventIndexInRef)
 	Put2byte(buf, uint16(len(p.SigIndices)))
 	for i := 0; i < len(p.SigIndices); i++ {
@@ -141,12 +141,12 @@ func (p *BBcReference) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)
 
-	p.AssetGroupId, err = GetBigInt(buf)
+	p.AssetGroupID, err = GetBigInt(buf)
 	if err != nil {
 		return err
 	}
 
-	p.TransactionId, err = GetBigInt(buf)
+	p.TransactionID, err = GetBigInt(buf)
 	if err != nil {
 		return err
 	}

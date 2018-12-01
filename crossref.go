@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -26,41 +26,41 @@ This is the BBcCrossRef definition.
 
 CrossRef stands for CrossReference, which holds information in other domain for inter-domain collaboration of transaction authenticity.
 
-"IdLength" is not included in a packed data. It is for internal use only.
+"IDLength" is not included in a packed data. It is for internal use only.
 
-"DomainId" is the identifier of a domain and the length of the ID must be 256 bits (=32 bytes).
-"TransactionId" is that of transaction object in other domain (specified by the DomainId).
- */
+"DomainID" is the identifier of a domain and the length of the ID must be 256 bits (=32 bytes).
+"TransactionID" is that of transaction object in other domain (specified by the DomainID).
+*/
 type (
 	BBcCrossRef struct {
-		IdLength 		int
-		DomainId 		[]byte
-		TransactionId	[]byte
+		IDLength      int
+		DomainID      []byte
+		TransactionID []byte
 	}
 )
 
 // The length of DomainID must be 256-bit in any domain.
 const (
-	DomainIdLength = 32
+	DomainIDLength = 32
 )
 
 // Output content of the object
 func (p *BBcCrossRef) Stringer() string {
 	ret := "Cross_Ref:\n"
-	ret += fmt.Sprintf("  domain_id: %x\n", p.DomainId)
-	ret += fmt.Sprintf("  transaction_id: %x\n", p.TransactionId)
+	ret += fmt.Sprintf("  domain_id: %x\n", p.DomainID)
+	ret += fmt.Sprintf("  transaction_id: %x\n", p.TransactionID)
 	return ret
 }
 
 // Add essential information to the BBcCrossRef object
 func (p *BBcCrossRef) Add(domainId *[]byte, txid *[]byte) {
 	if domainId != nil {
-		p.DomainId = make([]byte, DomainIdLength)
-		copy(p.DomainId, *domainId)
+		p.DomainID = make([]byte, DomainIDLength)
+		copy(p.DomainID, *domainId)
 	}
 	if txid != nil {
-		p.TransactionId = make([]byte, p.IdLength)
-		copy(p.TransactionId, (*txid)[:p.IdLength])
+		p.TransactionID = make([]byte, p.IDLength)
+		copy(p.TransactionID, (*txid)[:p.IDLength])
 	}
 }
 
@@ -68,8 +68,8 @@ func (p *BBcCrossRef) Add(domainId *[]byte, txid *[]byte) {
 func (p *BBcCrossRef) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
-	PutBigInt(buf, &p.DomainId, DomainIdLength)
-	PutBigInt(buf, &p.TransactionId, 32)
+	PutBigInt(buf, &p.DomainID, DomainIDLength)
+	PutBigInt(buf, &p.TransactionID, 32)
 
 	return buf.Bytes(), nil
 }
@@ -79,12 +79,12 @@ func (p *BBcCrossRef) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)
 
-	p.DomainId, err = GetBigInt(buf)
+	p.DomainID, err = GetBigInt(buf)
 	if err != nil {
 		return err
 	}
 
-	p.TransactionId, err = GetBigInt(buf)
+	p.TransactionID, err = GetBigInt(buf)
 	if err != nil {
 		return err
 	}

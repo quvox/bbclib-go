@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -22,12 +22,11 @@ import (
 	"time"
 )
 
-
 func TestTransactionPackUnpack(t *testing.T) {
 
 	t.Run("simple creation (with relation)", func(t *testing.T) {
-		keypair := GenerateKeypair(KeyType_ECDSA_P256v1, defaultCompressionMode)
-		txobj := BBcTransaction{Version:1, Timestamp:time.Now().UnixNano(), IdLength:defaultIdLength}
+		keypair := GenerateKeypair(KeyTypeEcdsaP256v1, defaultCompressionMode)
+		txobj := BBcTransaction{Version: 1, Timestamp: time.Now().UnixNano(), IDLength: defaultIDLength}
 		rtn := BBcRelation{}
 		txobj.AddRelation(&rtn)
 		wit := BBcWitness{}
@@ -39,38 +38,38 @@ func TestTransactionPackUnpack(t *testing.T) {
 		ptr1 := BBcPointer{}
 		ptr2 := BBcPointer{}
 
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIDLength)
 		rtn.Add(&assetgroup, &ast)
 		rtn.AddPointer(&ptr1)
 		rtn.AddPointer(&ptr2)
 
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
-		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", defaultIdLength)
-		txid2 := GetIdentifierWithTimestamp("asdfauflkajethb;:a", defaultIdLength)
-		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", defaultIdLength)
+		txid1 := GetIdentifier("0123456789abcdef0123456789abcdef", defaultIDLength)
+		txid2 := GetIdentifierWithTimestamp("asdfauflkajethb;:a", defaultIDLength)
+		asid1 := GetIdentifier("123456789abcdef0123456789abcdef0", defaultIDLength)
 		ptr1.Add(&txid1, &asid1)
 		ptr2.Add(&txid2, nil)
 
 		wit.AddWitness(&u1)
-		u2 := GetIdentifierWithTimestamp("user2", defaultIdLength)
+		u2 := GetIdentifierWithTimestamp("user2", defaultIDLength)
 		wit.AddWitness(&u2)
 
-		dom := GetIdentifier("dummy domain", defaultIdLength)
-		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIdLength)
+		dom := GetIdentifier("dummy domain", defaultIDLength)
+		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIDLength)
 		crs.Add(&dom, &dummyTxid)
 
 		sig := BBcSignature{}
 		sig.SetPublicKeyByKeypair(&keypair)
-		signature, err := txobj.Sign(&keypair)
+		signature, _ := txobj.Sign(&keypair)
 		sig.SetSignature(&signature)
 		wit.AddSignature(&u1, &sig)
 
 		sig2 := BBcSignature{}
 		sig2.SetPublicKeyByKeypair(&keypair)
-		signature2, err := txobj.Sign(&keypair)
+		signature2, _ := txobj.Sign(&keypair)
 		sig2.SetSignature(&signature2)
 		wit.AddSignature(&u2, &sig2)
 
@@ -91,15 +90,15 @@ func TestTransactionPackUnpack(t *testing.T) {
 		t.Log("--------------------------------------")
 
 		obj2.Digest()
-		if bytes.Compare(txobj.Relations[0].Asset.AssetId, obj2.Relations[0].Asset.AssetId) != 0 ||
-			bytes.Compare(txobj.TransactionId, obj2.TransactionId) != 0 {
+		if bytes.Compare(txobj.Relations[0].Asset.AssetID, obj2.Relations[0].Asset.AssetID) != 0 ||
+			bytes.Compare(txobj.TransactionID, obj2.TransactionID) != 0 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})
 
-	txobj2 := BBcTransaction{Version:1, Timestamp:time.Now().UnixNano(), IdLength:defaultIdLength}
+	txobj2 := BBcTransaction{Version: 1, Timestamp: time.Now().UnixNano(), IDLength: defaultIDLength}
 	t.Run("simple creation (with event)", func(t *testing.T) {
-		keypair := GenerateKeypair(KeyType_ECDSA_P256v1, defaultCompressionMode)
+		keypair := GenerateKeypair(KeyTypeEcdsaP256v1, defaultCompressionMode)
 		evt := BBcEvent{}
 		txobj2.AddEvent(&evt)
 		crs := BBcCrossRef{}
@@ -107,27 +106,27 @@ func TestTransactionPackUnpack(t *testing.T) {
 		wit := BBcWitness{}
 		txobj2.AddWitness(&wit)
 
-		ast := BBcAsset{IdLength:defaultIdLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
+		ast := BBcAsset{IDLength: defaultIDLength}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIDLength)
 		evt.Add(&assetgroup, &ast)
 
-		u2 := GetIdentifierWithTimestamp("user2", defaultIdLength)
+		u2 := GetIdentifierWithTimestamp("user2", defaultIDLength)
 		evt.AddMandatoryApprover(&u1)
 		evt.AddMandatoryApprover(&u2)
 		evt.AddOptionParams(2, 1)
 
-		dom := GetIdentifier("dummy domain", defaultIdLength)
-		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIdLength)
+		dom := GetIdentifier("dummy domain", defaultIDLength)
+		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIDLength)
 		crs.Add(&dom, &dummyTxid)
 
 		wit.AddWitness(&u1)
 		sig := BBcSignature{}
 		sig.SetPublicKeyByKeypair(&keypair)
-		signature, err := txobj2.Sign(&keypair)
+		signature, _ := txobj2.Sign(&keypair)
 		sig.SetSignature(&signature)
 		wit.AddSignature(&u1, &sig)
 
@@ -148,15 +147,15 @@ func TestTransactionPackUnpack(t *testing.T) {
 		t.Log("--------------------------------------")
 
 		obj2.Digest()
-		if bytes.Compare(txobj2.Events[0].Asset.AssetId, obj2.Events[0].Asset.AssetId) != 0 ||
-			bytes.Compare(txobj2.TransactionId, obj2.TransactionId) != 0 {
+		if bytes.Compare(txobj2.Events[0].Asset.AssetID, obj2.Events[0].Asset.AssetID) != 0 ||
+			bytes.Compare(txobj2.TransactionID, obj2.TransactionID) != 0 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})
 
 	t.Run("simple creation (with event/reference)", func(t *testing.T) {
-		keypair := GenerateKeypair(KeyType_ECDSA_P256v1, defaultCompressionMode)
-		txobj3 := BBcTransaction{Version:1, Timestamp:time.Now().UnixNano(), IdLength:defaultIdLength}
+		keypair := GenerateKeypair(KeyTypeEcdsaP256v1, defaultCompressionMode)
+		txobj3 := BBcTransaction{Version: 1, Timestamp: time.Now().UnixNano(), IDLength: defaultIDLength}
 		evt := BBcEvent{}
 		txobj3.AddEvent(&evt)
 		ref := BBcReference{}
@@ -164,15 +163,15 @@ func TestTransactionPackUnpack(t *testing.T) {
 		crs := BBcCrossRef{}
 		txobj3.AddCrossRef(&crs)
 
-		ast := BBcAsset{IdLength:defaultIdLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
+		ast := BBcAsset{IDLength: defaultIDLength}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
-		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIdLength)
+		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIDLength)
 		evt.Add(&assetgroup, &ast)
 
-		u2 := GetIdentifierWithTimestamp("user2", defaultIdLength)
+		u2 := GetIdentifierWithTimestamp("user2", defaultIDLength)
 		evt.AddMandatoryApprover(&u1)
 		evt.AddMandatoryApprover(&u2)
 		evt.AddOptionParams(2, 1)
@@ -181,8 +180,8 @@ func TestTransactionPackUnpack(t *testing.T) {
 		ref.AddApprover(&u1)
 		ref.AddApprover(&u2)
 
-		dom := GetIdentifier("dummy domain", defaultIdLength)
-		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIdLength)
+		dom := GetIdentifier("dummy domain", defaultIDLength)
+		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIDLength)
 		crs.Add(&dom, &dummyTxid)
 
 		sig := BBcSignature{}
@@ -220,8 +219,8 @@ func TestTransactionPackUnpack(t *testing.T) {
 		t.Log("--------------------------------------")
 
 		obj2.Digest()
-		if bytes.Compare(txobj3.Events[0].Asset.AssetId, obj2.Events[0].Asset.AssetId) != 0 ||
-			bytes.Compare(txobj3.TransactionId, obj2.TransactionId) != 0 {
+		if bytes.Compare(txobj3.Events[0].Asset.AssetID, obj2.Events[0].Asset.AssetID) != 0 ||
+			bytes.Compare(txobj3.TransactionID, obj2.TransactionID) != 0 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})

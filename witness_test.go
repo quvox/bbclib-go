@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -21,13 +21,12 @@ import (
 	"testing"
 )
 
-
 func TestWitnessPackUnpack(t *testing.T) {
 	t.Run("simple creation (string asset)", func(t *testing.T) {
-		txobj := BBcTransaction{IdLength:defaultIdLength}
-		obj := BBcWitness{IdLength:defaultIdLength, Transaction:&txobj}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
-		u2 := GetIdentifierWithTimestamp("user2", defaultIdLength)
+		txobj := BBcTransaction{IDLength: defaultIDLength}
+		obj := BBcWitness{IDLength: defaultIDLength, Transaction: &txobj}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
+		u2 := GetIdentifierWithTimestamp("user2", defaultIDLength)
 
 		obj.AddWitness(&u1)
 		obj.AddWitness(&u2)
@@ -37,7 +36,7 @@ func TestWitnessPackUnpack(t *testing.T) {
 		obj.AddSignature(&u2, &sig)
 
 		t.Log("---------------witness-----------------")
-		t.Logf("id_length: %d", obj.IdLength)
+		t.Logf("id_length: %d", obj.IDLength)
 		t.Logf("%v", obj.Stringer())
 		t.Log("--------------------------------------")
 
@@ -47,24 +46,23 @@ func TestWitnessPackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcWitness{IdLength:defaultIdLength}
+		obj2 := BBcWitness{IDLength: defaultIDLength}
 		obj2.Unpack(&dat)
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", obj2.IdLength)
+		t.Logf("id_length: %d", obj2.IDLength)
 		t.Logf("%v", obj2.Stringer())
 		t.Log("--------------------------------------")
 
-		if bytes.Compare(obj.UserIds[0], obj2.UserIds[0]) != 0 || bytes.Compare(obj.UserIds[1], obj2.UserIds[1]) != 0 {
+		if bytes.Compare(obj.UserIDs[0], obj2.UserIDs[0]) != 0 || bytes.Compare(obj.UserIDs[1], obj2.UserIDs[1]) != 0 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})
 }
 
-
 func TestWitnessInvalidAccess(t *testing.T) {
 	t.Run("no transaction", func(t *testing.T) {
-		obj := BBcWitness{IdLength:defaultIdLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIdLength)
+		obj := BBcWitness{IDLength: defaultIDLength}
+		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
 
 		err := obj.AddWitness(&u1)
 		if err == nil {

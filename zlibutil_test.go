@@ -12,15 +12,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 )
-
 
 func TestCompressDecompress(t *testing.T) {
 	original := []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
@@ -32,7 +31,7 @@ func TestCompressDecompress(t *testing.T) {
 		t.Fatalf("failed to decompress (%v)", err)
 	}
 	t.Logf("compressed: %x\n", decomp)
-	if ! reflect.DeepEqual(original, decomp) {
+	if !reflect.DeepEqual(original, decomp) {
 		t.Fatal("failed to decompress (mismatch)")
 	}
 	t.Log("Succeeded")

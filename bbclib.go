@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 /*
 This is a library for defining BBcTransaction. This also provides serializer/deserializer and utilities for BBcTransaction object manipulation.
@@ -31,32 +31,33 @@ Utility functions
 
 To build a BBcTransaction you need to create (new) objects you want to include. In many cases, it is a kind of common coding manner.
 The utility functions are helpers to build a BBcTransaction with various objects.
- */
+*/
 package bbclib
 
 import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 )
 
 // Header values for serialized data
 const (
-	FORMAT_PLAIN = 0x0000
-	FORMAT_ZLIB = 0x0010
+	FormatPlain = 0x0000
+	FormatZlib  = 0x0010
 )
 
 const (
-	defaultIdLength = 32
+	defaultIDLength = 32
 )
 
 /*
-Serializer of packed BBcTransaction data
+Serialize BBcTransaction object into packed data
 
 formatType = 0x0000: Packed data is simply used for serialized data.
 
 formatType = 0x0010: Packed data is compressed using zlib, and the compressed data is used for serialized data.
-  */
+*/
 func Serialize(transaction *BBcTransaction, formatType uint16) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	Put2byte(buf, formatType)
@@ -65,11 +66,11 @@ func Serialize(transaction *BBcTransaction, formatType uint16) ([]byte, error) {
 		return nil, err
 	}
 
-	if formatType == FORMAT_PLAIN {
+	if formatType == FormatPlain {
 		if err := binary.Write(buf, binary.LittleEndian, dat); err != nil {
 			return nil, err
 		}
-	} else if formatType == FORMAT_ZLIB {
+	} else if formatType == FormatZlib {
 		compressed := ZlibCompress(&dat)
 		if err := binary.Write(buf, binary.LittleEndian, compressed); err != nil {
 			return nil, err
@@ -79,7 +80,7 @@ func Serialize(transaction *BBcTransaction, formatType uint16) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Deserializer of BBcTransaction data with header
+// Deserialize BBcTransaction data with header
 func Deserialize(dat []byte) (*BBcTransaction, error) {
 	buf := bytes.NewBuffer(dat)
 
@@ -93,18 +94,18 @@ func Deserialize(dat []byte) (*BBcTransaction, error) {
 		return nil, err
 	}
 
-	if formatType == FORMAT_PLAIN {
+	if formatType == FormatPlain {
 		txobj := BBcTransaction{}
-		txobj.Unpack(&txdat)
-		return &txobj, nil
-	} else if formatType == FORMAT_ZLIB {
+		err2 := txobj.Unpack(&txdat)
+		return &txobj, err2
+	} else if formatType == FormatZlib {
 		decompressed, err := ZlibDecompress(txdat)
 		if err != nil {
 			return nil, err
 		}
 		txobj := BBcTransaction{}
-		txobj.Unpack(&decompressed)
-		return &txobj, nil
+		err2 := txobj.Unpack(&decompressed)
+		return &txobj, err2
 	}
 
 	return nil, errors.New("formatType not supported")
@@ -112,13 +113,13 @@ func Deserialize(dat []byte) (*BBcTransaction, error) {
 
 // Utility for making simple BBcTransaction object with BBcEvent, BBcRelation or/and BBcWitness
 func MakeTransaction(eventNum, relationNum int, witness bool, idLength int) *BBcTransaction {
-	txobj := BBcTransaction{IdLength:idLength}
-	for i:=0; i<eventNum; i++ {
+	txobj := BBcTransaction{IDLength: idLength}
+	for i := 0; i < eventNum; i++ {
 		evt := BBcEvent{}
 		txobj.AddEvent(&evt)
 	}
 
-	for i:=0; i<relationNum; i++ {
+	for i := 0; i < relationNum; i++ {
 		rtn := BBcRelation{}
 		txobj.AddRelation(&rtn)
 	}
@@ -132,122 +133,123 @@ func MakeTransaction(eventNum, relationNum int, witness bool, idLength int) *BBc
 }
 
 // Internal function to create a BBcAsset and add it to  BBcRelation object and then a BBcTransaction object
-func addInRelation(transaction *BBcTransaction, relationIdx int, assetGroupId, userId *[]byte) {
+func addInRelation(transaction *BBcTransaction, relationIdx int, assetGroupID, userID *[]byte) {
 	ast := BBcAsset{}
-	transaction.Relations[relationIdx].Add(assetGroupId, &ast)
-	ast.Add(userId)
+	transaction.Relations[relationIdx].Add(assetGroupID, &ast)
+	ast.Add(userID)
 }
 
 // Include a file digest to BBcAsset in BBcRelation and add it to a BBcTransaction object
-func AddRelationAssetFile(transaction *BBcTransaction, relationIdx int, assetGroupId, userId, assetFile *[]byte) {
+func AddRelationAssetFile(transaction *BBcTransaction, relationIdx int, assetGroupID, userID, assetFile *[]byte) {
 	if transaction == nil {
 		return
 	}
-	addInRelation(transaction, relationIdx, assetGroupId, userId)
+	addInRelation(transaction, relationIdx, assetGroupID, userID)
 	if assetFile != nil {
 		transaction.Relations[relationIdx].Asset.AddFile(assetFile)
 	}
 }
 
 // Include a string in BBcAsset in BBcRelation and add it to a BBcTransaction object
-func AddRelationAssetBodyString(transaction *BBcTransaction, relationIdx int, assetGroupId, userId *[]byte, body string) {
+func AddRelationAssetBodyString(transaction *BBcTransaction, relationIdx int, assetGroupID, userID *[]byte, body string) {
 	if transaction == nil {
 		return
 	}
-	addInRelation(transaction, relationIdx, assetGroupId, userId)
+	addInRelation(transaction, relationIdx, assetGroupID, userID)
 	if body != "" {
 		transaction.Relations[relationIdx].Asset.AddBodyString(body)
 	}
 }
 
 // Include an object (map[string]interface{}) in BBcAsset in BBcRelation, convert the info into msgpack, and add it in a BBcTransaction object
-func AddRelationAssetBodyObject(transaction *BBcTransaction, relationIdx int, assetGroupId, userId *[]byte, body interface{}) {
+func AddRelationAssetBodyObject(transaction *BBcTransaction, relationIdx int, assetGroupID, userID *[]byte, body interface{}) {
 	if transaction == nil {
 		return
 	}
-	addInRelation(transaction, relationIdx, assetGroupId, userId)
+	addInRelation(transaction, relationIdx, assetGroupID, userID)
 	if body != nil {
-		transaction.Relations[relationIdx].Asset.AddBodyObject(body)
+		if err := transaction.Relations[relationIdx].Asset.AddBodyObject(body); err != nil {
+			fmt.Println("Fail to exec AddRelationAssetBodyObject")
+		}
 	}
 }
 
 // Create and include a BBcPointer object in BBcRelation and then, add it in a BBcTransaction object
-func AddRelationPointer(transaction *BBcTransaction, relationIdx int, refTransactionId, refAssetId *[]byte) {
+func AddRelationPointer(transaction *BBcTransaction, relationIdx int, refTransactionID, refAssetID *[]byte) {
 	if transaction == nil {
 		return
 	}
 	ptr := BBcPointer{}
 	transaction.Relations[relationIdx].AddPointer(&ptr)
-	ptr.Add(refTransactionId, refAssetId)
+	ptr.Add(refTransactionID, refAssetID)
 }
 
 // Create and include a BBcPointer object in BBcRelation
-func AddPointerInRelation(relation *BBcRelation, refTransaction *BBcTransaction, refAssetId *[]byte) {
+func AddPointerInRelation(relation *BBcRelation, refTransaction *BBcTransaction, refAssetID *[]byte) {
 	ptr := BBcPointer{}
 	relation.AddPointer(&ptr)
-	ptr.Add(&refTransaction.TransactionId, refAssetId)
+	ptr.Add(&refTransaction.TransactionID, refAssetID)
 }
 
 // Create and add a BBcReference object in a BBcTransaction object
-func AddReference(transaction *BBcTransaction, assetGroupId, userId *[]byte, refTransaction *BBcTransaction, eventIdx int) {
+func AddReference(transaction *BBcTransaction, assetGroupID, userID *[]byte, refTransaction *BBcTransaction, eventIdx int) {
 	if transaction == nil || refTransaction == nil {
 		return
 	}
-	if refTransaction.TransactionId == nil {
+	if refTransaction.TransactionID == nil {
 		refTransaction.Digest()
 	}
 	ref := BBcReference{}
 	transaction.AddReference(&ref)
-	ref.Add(assetGroupId, refTransaction, eventIdx)
+	ref.Add(assetGroupID, refTransaction, eventIdx)
 }
 
 // Internal function to add a BBcEvent object in a BBcTransaction object
-func addInEvent(transaction *BBcTransaction, eventIdx int, assetGroupId, userId *[]byte) {
+func addInEvent(transaction *BBcTransaction, eventIdx int, assetGroupID, userID *[]byte) {
 	ast := BBcAsset{}
-	transaction.Events[eventIdx].Add(assetGroupId, &ast)
-	ast.Add(userId)
+	transaction.Events[eventIdx].Add(assetGroupID, &ast)
+	ast.Add(userID)
 }
 
-
 // Add a file digest to a BBcAsset object in a BBcEvent object and then, add it in a BBcTransaction object
-func AddEventAssetFile(transaction *BBcTransaction, eventIdx int, assetGroupId, userId *[]byte, assetFile *[]byte) {
+func AddEventAssetFile(transaction *BBcTransaction, eventIdx int, assetGroupID, userID *[]byte, assetFile *[]byte) {
 	if transaction == nil {
 		return
 	}
-	addInEvent(transaction, eventIdx, assetGroupId, userId)
+	addInEvent(transaction, eventIdx, assetGroupID, userID)
 	if assetFile != nil {
 		transaction.Events[eventIdx].Asset.AddFile(assetFile)
 	}
 }
 
 // Add a string to a BBcAsset object in a BBcEvent object and then, add it in a BBcTransaction object
-func AddEventAssetBodyString(transaction *BBcTransaction, eventIdx int, assetGroupId, userId *[]byte, body string) {
+func AddEventAssetBodyString(transaction *BBcTransaction, eventIdx int, assetGroupID, userID *[]byte, body string) {
 	if transaction == nil {
 		return
 	}
-	addInEvent(transaction, eventIdx, assetGroupId, userId)
+	addInEvent(transaction, eventIdx, assetGroupID, userID)
 	if body != "" {
 		transaction.Events[eventIdx].Asset.AddBodyString(body)
 	}
 }
 
 // Add an object (map[string]interface{}) to a BBcAsset object in a BBcEvent object and then, add it in a BBcTransaction object
-func AddEventAssetBodyObject(transaction *BBcTransaction, eventIdx int, assetGroupId, userId *[]byte, body interface{}) {
+func AddEventAssetBodyObject(transaction *BBcTransaction, eventIdx int, assetGroupID, userID *[]byte, body interface{}) {
 	if transaction == nil {
 		return
 	}
-	addInEvent(transaction, eventIdx, assetGroupId, userId)
+	addInEvent(transaction, eventIdx, assetGroupID, userID)
 	if body != "" {
 		transaction.Events[eventIdx].Asset.AddBodyObject(body)
 	}
 }
 
 // Utility for making simple BBcTransaction object with BBcRelation with BBcAsset
-func MakeRelationWithAsset(assetGroupId, userId *[]byte, assetBodyString string, assetBodyObject interface{}, assetFile *[]byte, idLength int) *BBcRelation {
-	rtn := BBcRelation{IdLength:idLength}
-	ast := BBcAsset{IdLength:idLength}
-	ast.Add(userId)
-	rtn.Add(assetGroupId, &ast)
+func MakeRelationWithAsset(assetGroupID, userID *[]byte, assetBodyString string, assetBodyObject interface{}, assetFile *[]byte, idLength int) *BBcRelation {
+	rtn := BBcRelation{IDLength: idLength}
+	ast := BBcAsset{IDLength: idLength}
+	ast.Add(userID)
+	rtn.Add(assetGroupID, &ast)
 	if assetFile != nil {
 		ast.AddFile(assetFile)
 	}
@@ -262,6 +264,6 @@ func MakeRelationWithAsset(assetGroupId, userId *[]byte, assetBodyString string,
 // Utility for recovering signature data into BBcSignature object
 func RecoverSignatureObject(dat *[]byte) *BBcSignature {
 	sig := BBcSignature{}
-	sig.Unpack(*dat)
+	sig.Unpack(dat)
 	return &sig
 }

@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -24,35 +24,35 @@ import (
 /*
 This is the BBcPointer definition.
 
-BBcPointer(s) are included in BBcRelation object. A BBcPointer object includes "TransactionId" and "AssetId" and
+BBcPointer(s) are included in BBcRelation object. A BBcPointer object includes "TransactionID" and "AssetID" and
 declares that the transaction has a certain relationship with the BBcTransaction and BBcAsset object specified by those IDs.
 
-IdLength is not included in a packed data. It is for internal use only.
- */
+IDLength is not included in a packed data. It is for internal use only.
+*/
 type (
 	BBcPointer struct {
-		IdLength 		int
-		TransactionId 	[]byte
-		AssetId 		[]byte
+		IDLength      int
+		TransactionID []byte
+		AssetID       []byte
 	}
 )
 
 // Output content of the object
 func (p *BBcPointer) Stringer() string {
-	ret := fmt.Sprintf("     transaction_id: %x\n", p.TransactionId)
-	ret += fmt.Sprintf("     asset_id: %x\n", p.AssetId)
+	ret := fmt.Sprintf("     transaction_id: %x\n", p.TransactionID)
+	ret += fmt.Sprintf("     asset_id: %x\n", p.AssetID)
 	return ret
 }
 
 // Add essential information to the BBcPointer object
 func (p *BBcPointer) Add(txid *[]byte, asid *[]byte) {
 	if txid != nil {
-		p.TransactionId = make([]byte, p.IdLength)
-		copy(p.TransactionId, (*txid)[:p.IdLength])
+		p.TransactionID = make([]byte, p.IDLength)
+		copy(p.TransactionID, (*txid)[:p.IDLength])
 	}
 	if asid != nil {
-		p.AssetId = make([]byte, p.IdLength)
-		copy(p.AssetId, (*asid)[:p.IdLength])
+		p.AssetID = make([]byte, p.IDLength)
+		copy(p.AssetID, (*asid)[:p.IDLength])
 	}
 }
 
@@ -60,16 +60,16 @@ func (p *BBcPointer) Add(txid *[]byte, asid *[]byte) {
 func (p *BBcPointer) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
-	PutBigInt(buf, &p.TransactionId, p.IdLength)
+	PutBigInt(buf, &p.TransactionID, p.IDLength)
 
-	if p.AssetId != nil {
+	if p.AssetID != nil {
 		Put2byte(buf, 1)
 	} else {
 		Put2byte(buf, 0)
 		return buf.Bytes(), nil
 	}
 
-	PutBigInt(buf, &p.AssetId, p.IdLength)
+	PutBigInt(buf, &p.AssetID, p.IDLength)
 
 	return buf.Bytes(), nil
 }
@@ -79,7 +79,7 @@ func (p *BBcPointer) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)
 
-	p.TransactionId, err = GetBigInt(buf)
+	p.TransactionID, err = GetBigInt(buf)
 	if err != nil {
 		return err
 	}
@@ -88,12 +88,12 @@ func (p *BBcPointer) Unpack(dat *[]byte) error {
 		return err
 	} else {
 		if val == 0 {
-			p.AssetId = nil
+			p.AssetID = nil
 			return nil
 		}
 	}
 
-	p.AssetId, err = GetBigInt(buf)
+	p.AssetID, err = GetBigInt(buf)
 	if err != nil {
 		return err
 	}

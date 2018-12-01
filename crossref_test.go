@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -21,15 +21,14 @@ import (
 	"testing"
 )
 
-
 func TestCrossRefPackUnpack(t *testing.T) {
 	t.Run("simple creation", func(t *testing.T) {
-		obj := BBcCrossRef{IdLength:defaultIdLength}
-		dom := GetIdentifier("dummy domain", defaultIdLength)
-		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIdLength)
+		obj := BBcCrossRef{IDLength: defaultIDLength}
+		dom := GetIdentifier("dummy domain", defaultIDLength)
+		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIDLength)
 		obj.Add(&dom, &dummyTxid)
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", obj.IdLength)
+		t.Logf("id_length: %d", obj.IDLength)
 		t.Logf("%v", obj.Stringer())
 		t.Log("--------------------------------------")
 
@@ -39,14 +38,14 @@ func TestCrossRefPackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcCrossRef{IdLength:defaultIdLength}
+		obj2 := BBcCrossRef{IDLength: defaultIDLength}
 		obj2.Unpack(&dat)
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", obj2.IdLength)
+		t.Logf("id_length: %d", obj2.IDLength)
 		t.Logf("%v", obj2.Stringer())
 		t.Log("--------------------------------------")
 
-		if bytes.Compare(obj.DomainId, obj2.DomainId) != 0 || bytes.Compare(obj.TransactionId, obj2.TransactionId) != 0 {
+		if bytes.Compare(obj.DomainID, obj2.DomainID) != 0 || bytes.Compare(obj.TransactionID, obj2.TransactionID) != 0 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})

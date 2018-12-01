@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 package bbclib
 
@@ -25,27 +25,27 @@ import (
 )
 
 /*
-This is the BBcAsset definition.
+BBcAsset definition
 
-"IdLength" and "digestCalculating" are not included in a packed data. They are for internal use only.
+"IDLength" and "digestCalculating" are not included in a packed data. They are for internal use only.
 
-"AssetId" is the SHA256 digest of packed BBcAsset data, which contains from "UserId" to "AssetBody".
-The length of "AssetId" and "UserId" is defined by "IdLength".
+"AssetID" is the SHA256 digest of packed BBcAsset data, which contains from "UserID" to "AssetBody".
+The length of "AssetID" and "UserID" is defined by "IDLength".
 "Nonce" is automatically determined with random value.
 BBcAsset can contain a digest of a file, string, map[string]interface{} object as asset.
-  */
+*/
 type (
 	BBcAsset struct {
-		IdLength		int
+		IDLength          int
 		digestCalculating bool
-		AssetId			[]byte
-		UserId			[]byte
-		Nonce			[]byte
-		AssetFileSize 	uint32
-		AssetFileDigest	[]byte
-		AssetBodyType	uint16
-		AssetBodySize 	uint16
-		AssetBody		[]byte
+		AssetID           []byte
+		UserID            []byte
+		Nonce             []byte
+		AssetFileSize     uint32
+		AssetFileDigest   []byte
+		AssetBodyType     uint16
+		AssetBodySize     uint16
+		AssetBody         []byte
 	}
 )
 
@@ -53,7 +53,6 @@ type (
 var (
 	mh codec.MsgpackHandle
 )
-
 
 // Encode object in messagepack data
 func encodeMessagePack(values interface{}) ([]byte, error) {
@@ -79,9 +78,9 @@ func decodeMessagePack(buf []byte) (interface{}, error) {
 
 // Output content of the object
 func (p *BBcAsset) Stringer() string {
-	ret :=  "  Asset:\n"
-	ret += fmt.Sprintf("     asset_id: %x\n", p.AssetId)
-	ret += fmt.Sprintf("     user_id: %x\n", p.UserId)
+	ret := "  Asset:\n"
+	ret += fmt.Sprintf("     asset_id: %x\n", p.AssetID)
+	ret += fmt.Sprintf("     user_id: %x\n", p.UserID)
 	ret += fmt.Sprintf("     nonce: %x\n", p.Nonce)
 	ret += fmt.Sprintf("     file_size: %d\n", p.AssetFileSize)
 	if p.AssetFileDigest != nil {
@@ -94,16 +93,16 @@ func (p *BBcAsset) Stringer() string {
 	return ret
 }
 
-// Add userId in the BBcAsset object
-func (p *BBcAsset) Add(userId *[]byte) {
-	if userId != nil {
-		if p.IdLength == 0 {
-			p.IdLength = len(*userId)
+// Add userID in the BBcAsset object
+func (p *BBcAsset) Add(userID *[]byte) {
+	if userID != nil {
+		if p.IDLength == 0 {
+			p.IDLength = len(*userID)
 		}
-		p.UserId = make([]byte, p.IdLength)
-		copy(p.UserId, (*userId)[:p.IdLength])
+		p.UserID = make([]byte, p.IDLength)
+		copy(p.UserID, (*userID)[:p.IDLength])
 	}
-	p.Nonce = GetRandomValue(p.IdLength)
+	p.Nonce = GetRandomValue(p.IDLength)
 }
 
 // Add file in the BBcAsset object
@@ -141,7 +140,7 @@ func (p *BBcAsset) GetBodyObject() (interface{}, error) {
 	return decodeMessagePack(p.AssetBody)
 }
 
-// Calculate the AssetId value of the BBcAsset object
+// Calculate the AssetID value of the BBcAsset object
 func (p *BBcAsset) Digest() []byte {
 	p.digestCalculating = true
 	asset, err := p.Pack()
@@ -151,10 +150,10 @@ func (p *BBcAsset) Digest() []byte {
 	}
 
 	digest := sha256.Sum256(asset)
-	if p.AssetId == nil {
-		p.AssetId = make([]byte, p.IdLength)
+	if p.AssetID == nil {
+		p.AssetID = make([]byte, p.IDLength)
 	}
-	p.AssetId = digest[:p.IdLength]
+	p.AssetID = digest[:p.IDLength]
 	p.digestCalculating = false
 	return digest[:]
 }
@@ -163,13 +162,13 @@ func (p *BBcAsset) Digest() []byte {
 func (p *BBcAsset) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
-	if ! p.digestCalculating {
-		if p.AssetId == nil {
+	if !p.digestCalculating {
+		if p.AssetID == nil {
 			p.Digest()
 		}
-		PutBigInt(buf, &p.AssetId, p.IdLength)
+		PutBigInt(buf, &p.AssetID, p.IDLength)
 	}
-	PutBigInt(buf, &p.UserId, p.IdLength)
+	PutBigInt(buf, &p.UserID, p.IDLength)
 	PutBigInt(buf, &p.Nonce, len(p.Nonce))
 	Put4byte(buf, p.AssetFileSize)
 	if p.AssetFileSize > 0 {
@@ -188,18 +187,17 @@ func (p *BBcAsset) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-
 // Unpack binary data to BBcAsset object
 func (p *BBcAsset) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)
 
-	p.AssetId, err = GetBigInt(buf)
+	p.AssetID, err = GetBigInt(buf)
 	if err != nil {
 		return err
 	}
 
-	p.UserId, err = GetBigInt(buf)
+	p.UserID, err = GetBigInt(buf)
 	if err != nil {
 		return err
 	}
@@ -230,5 +228,5 @@ func (p *BBcAsset) Unpack(dat *[]byte) error {
 	}
 	p.AssetBody, err = GetBytes(buf, int(p.AssetBodySize))
 
-	return nil
+	return err
 }
