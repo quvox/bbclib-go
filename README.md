@@ -4,6 +4,7 @@ bbclib-go
 [![Build Status](https://travis-ci.org/quvox/bbclib-go.svg?branch=develop)](https://travis-ci.org/quvox/bbclib-go)
 [![Go Report Card](https://goreportcard.com/badge/github.com/quvox/bbclib-go)](https://goreportcard.com/report/github.com/quvox/bbclib-go)
 [![Coverage Status](https://coveralls.io/repos/github/quvox/bbclib-go/badge.svg?branch=develop)](https://coveralls.io/github/quvox/bbclib-go?branch=develop)
+[![Maintainability](https://api.codeclimate.com/v1/badges/0c523f5a3d71b77aad46/maintainability)](https://codeclimate.com/github/quvox/bbclib-go/maintainability)
 
 Golang implementation of bbc1.core.bbclib and bbc1.core.libs modules in beyond-blockchain/bbc1
 

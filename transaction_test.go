@@ -105,6 +105,7 @@ func TestTransactionPackUnpackSimpleWithEvent(t *testing.T) {
 	txobj2 := BBcTransaction{Version: 1, Timestamp: time.Now().UnixNano(), IDLength: defaultIDLength}
 	u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
 	u2 := GetIdentifierWithTimestamp("user2", defaultIDLength)
+	u3 := GetIdentifierWithTimestamp("user3", defaultIDLength)
 	t.Run("simple creation (with event)", func(t *testing.T) {
 		keypair := GenerateKeypair(KeyTypeEcdsaP256v1, defaultCompressionMode)
 		evt := BBcEvent{}
@@ -123,7 +124,8 @@ func TestTransactionPackUnpackSimpleWithEvent(t *testing.T) {
 
 		evt.AddMandatoryApprover(&u1)
 		evt.AddMandatoryApprover(&u2)
-		evt.AddOptionParams(2, 1)
+		evt.AddOptionParams(1, 1)
+		evt.AddOptionApprover(&u3)
 
 		dom := GetIdentifier("dummy domain", defaultIDLength)
 		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIDLength)
@@ -182,7 +184,7 @@ func TestTransactionPackUnpackSimpleWithEvent(t *testing.T) {
 
 		evt.AddMandatoryApprover(&u1)
 		evt.AddMandatoryApprover(&u2)
-		evt.AddOptionParams(2, 1)
+		evt.AddOptionParams(0, 0)
 
 		ref.Add(&assetgroup, &txobj2, 0)
 		ref.AddApprover(&u1)
