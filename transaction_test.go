@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-func TestTransactionPackUnpack(t *testing.T) {
+func TestTransactionPackUnpackSimple(t *testing.T) {
 
 	t.Run("simple creation (with relation)", func(t *testing.T) {
 		keypair := GenerateKeypair(KeyTypeEcdsaP256v1, defaultCompressionMode)
@@ -99,7 +99,9 @@ func TestTransactionPackUnpack(t *testing.T) {
 			t.Fatal("Not recovered correctly...")
 		}
 	})
+}
 
+func TestTransactionPackUnpackSimpleWithEvent(t *testing.T) {
 	txobj2 := BBcTransaction{Version: 1, Timestamp: time.Now().UnixNano(), IDLength: defaultIDLength}
 	t.Run("simple creation (with event)", func(t *testing.T) {
 		keypair := GenerateKeypair(KeyTypeEcdsaP256v1, defaultCompressionMode)

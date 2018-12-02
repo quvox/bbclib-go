@@ -349,11 +349,9 @@ func (p *BBcTransaction) Pack() ([]byte, error) {
 	return p.TransactionData, nil
 }
 
-// Unpack binary data to BBcTransaction object
-func (p *BBcTransaction) Unpack(dat *[]byte) error {
+// unpackHeader unpacks the header part of the binary data
+func (p *BBcTransaction) unpackHeader(buf *bytes.Buffer) error {
 	var err error
-	buf := bytes.NewBuffer(*dat)
-
 	p.Version, err = Get4byte(buf)
 	if err != nil {
 		return err
@@ -369,7 +367,11 @@ func (p *BBcTransaction) Unpack(dat *[]byte) error {
 		return err
 	}
 	p.IDLength = int(idLen)
+	return nil
+}
 
+// unpackEvent unpacks the events part of the binary data
+func (p *BBcTransaction) unpackEvent(buf *bytes.Buffer) error {
 	num, err := Get2byte(buf)
 	if err != nil {
 		return err
@@ -387,8 +389,12 @@ func (p *BBcTransaction) Unpack(dat *[]byte) error {
 		obj.Unpack(&data)
 		p.Events = append(p.Events, &obj)
 	}
+	return nil
+}
 
-	num, err = Get2byte(buf)
+// unpackReference unpacks the references part of the binary data
+func (p *BBcTransaction) unpackReference(buf *bytes.Buffer) error {
+	num, err := Get2byte(buf)
 	if err != nil {
 		return err
 	}
@@ -405,8 +411,12 @@ func (p *BBcTransaction) Unpack(dat *[]byte) error {
 		obj.Unpack(&data)
 		p.References = append(p.References, &obj)
 	}
+	return nil
+}
 
-	num, err = Get2byte(buf)
+// unpackRelation unpacks the relations part of the binary data
+func (p *BBcTransaction) unpackRelation(buf *bytes.Buffer) error {
+	num, err := Get2byte(buf)
 	if err != nil {
 		return err
 	}
@@ -420,8 +430,12 @@ func (p *BBcTransaction) Unpack(dat *[]byte) error {
 		obj.Unpack(&data)
 		p.Relations = append(p.Relations, &obj)
 	}
+	return nil
+}
 
-	num, err = Get2byte(buf)
+// unpackWitness unpacks the witness part of the binary data
+func (p *BBcTransaction) unpackWitness(buf *bytes.Buffer) error {
+	num, err := Get2byte(buf)
 	if err != nil {
 		return err
 	}
@@ -434,8 +448,12 @@ func (p *BBcTransaction) Unpack(dat *[]byte) error {
 		p.Witness = &BBcWitness{IDLength: p.IDLength}
 		p.Witness.Unpack(&data)
 	}
+	return nil
+}
 
-	num, err = Get2byte(buf)
+// unpackCrossRef unpacks the crossref part of the binary data
+func (p *BBcTransaction) unpackCrossRef(buf *bytes.Buffer) error {
+	num, err := Get2byte(buf)
 	if err != nil {
 		return err
 	}
@@ -451,8 +469,12 @@ func (p *BBcTransaction) Unpack(dat *[]byte) error {
 		p.Crossref = &BBcCrossRef{IDLength: p.IDLength}
 		p.Crossref.Unpack(&dat)
 	}
+	return nil
+}
 
-	num, err = Get2byte(buf)
+// unpackSignature unpacks the signatures part of the binary data
+func (p *BBcTransaction) unpackSignature(buf *bytes.Buffer) error {
+	num, err := Get2byte(buf)
 	if err != nil {
 		return err
 	}
@@ -468,6 +490,40 @@ func (p *BBcTransaction) Unpack(dat *[]byte) error {
 		obj := BBcSignature{}
 		obj.Unpack(&data)
 		p.Signatures = append(p.Signatures, &obj)
+	}
+	return nil
+}
+
+// Unpack binary data to BBcTransaction object
+func (p *BBcTransaction) Unpack(dat *[]byte) error {
+	buf := bytes.NewBuffer(*dat)
+
+	if err := p.unpackHeader(buf); err != nil {
+		return err
+	}
+
+	if err := p.unpackEvent(buf); err != nil {
+		return err
+	}
+
+	if err := p.unpackReference(buf); err != nil {
+		return err
+	}
+
+	if err := p.unpackRelation(buf); err != nil {
+		return err
+	}
+
+	if err := p.unpackWitness(buf); err != nil {
+		return err
+	}
+
+	if err := p.unpackCrossRef(buf); err != nil {
+		return err
+	}
+
+	if err := p.unpackSignature(buf); err != nil {
+		return err
 	}
 
 	p.Digest()

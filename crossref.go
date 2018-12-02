@@ -53,10 +53,10 @@ func (p *BBcCrossRef) Stringer() string {
 }
 
 // Add sets essential information to the BBcCrossRef object
-func (p *BBcCrossRef) Add(domainId *[]byte, txid *[]byte) {
-	if domainId != nil {
+func (p *BBcCrossRef) Add(domainID *[]byte, txid *[]byte) {
+	if domainID != nil {
 		p.DomainID = make([]byte, DomainIDLength)
-		copy(p.DomainID, *domainId)
+		copy(p.DomainID, *domainID)
 	}
 	if txid != nil {
 		p.TransactionID = make([]byte, p.IDLength)

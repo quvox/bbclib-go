@@ -165,28 +165,8 @@ func (p *BBcEvent) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Unpack the binary data to the BBcEvent object
-func (p *BBcEvent) Unpack(dat *[]byte) error {
-	var err error
-	buf := bytes.NewBuffer(*dat)
-
-	p.AssetGroupID, err = GetBigInt(buf)
-	if err != nil {
-		return err
-	}
-
-	numReferences, err := Get2byte(buf)
-	if err != nil {
-		return err
-	}
-	for i := 0; i < int(numReferences); i++ {
-		idx, err2 := Get2byte(buf)
-		if err2 != nil {
-			return err2
-		}
-		p.ReferenceIndices = append(p.ReferenceIndices, int(idx))
-	}
-
+// unpackApprovers unpacks the approver part of the binary data
+func (p *BBcEvent) unpackApprovers(buf *bytes.Buffer) error {
 	numMandatory, err := Get2byte(buf)
 	if err != nil {
 		return err
@@ -218,6 +198,34 @@ func (p *BBcEvent) Unpack(dat *[]byte) error {
 			return err2
 		}
 		p.OptionApprovers = append(p.OptionApprovers, userID)
+	}
+	return nil
+}
+
+// Unpack the binary data to the BBcEvent object
+func (p *BBcEvent) Unpack(dat *[]byte) error {
+	var err error
+	buf := bytes.NewBuffer(*dat)
+
+	p.AssetGroupID, err = GetBigInt(buf)
+	if err != nil {
+		return err
+	}
+
+	numReferences, err := Get2byte(buf)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < int(numReferences); i++ {
+		idx, err2 := Get2byte(buf)
+		if err2 != nil {
+			return err2
+		}
+		p.ReferenceIndices = append(p.ReferenceIndices, int(idx))
+	}
+
+	if err = p.unpackApprovers(buf); err != nil {
+		return err
 	}
 
 	assetSize, err := Get4byte(buf)
