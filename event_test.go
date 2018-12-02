@@ -39,7 +39,14 @@ func TestEventPackUnpack(t *testing.T) {
 		obj.AddMandatoryApprover(&u1)
 		obj.AddMandatoryApprover(&u2)
 		obj.AddOptionApprover(&u3)
-		obj.AddOptionParams(2, 2)
+		obj.AddOptionParams(1, 2)
+
+		_, err := obj.Pack()
+		if err == nil {
+			t.Fatal("something wrong in option approvers")
+		}
+		u4 := GetIdentifierWithTimestamp("user3", defaultIDLength)
+		obj.AddOptionApprover(&u4)
 
 		t.Log("---------------Event-----------------")
 		t.Logf("id_length: %d", obj.IDLength)

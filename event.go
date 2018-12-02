@@ -19,6 +19,7 @@ package bbclib
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 )
 
@@ -128,6 +129,9 @@ func (p *BBcEvent) AddOptionApprover(userID *[]byte) {
 
 // Pack returns the binary data of the BBcEvent object
 func (p *BBcEvent) Pack() ([]byte, error) {
+	if len(p.OptionApprovers) != int(p.OptionApproverNumDenominator) {
+		return nil, errors.New("num of option approvers must be equal to OptionApproverNumDenominator")
+	}
 	buf := new(bytes.Buffer)
 
 	PutBigInt(buf, &p.AssetGroupID, p.IDLength)
@@ -144,8 +148,7 @@ func (p *BBcEvent) Pack() ([]byte, error) {
 
 	Put2byte(buf, p.OptionApproverNumNumerator)
 	Put2byte(buf, p.OptionApproverNumDenominator)
-	Put2byte(buf, uint16(len(p.OptionApprovers)))
-	for i := 0; i < len(p.OptionApprovers); i++ {
+	for i := 0; i < int(p.OptionApproverNumDenominator); i++ {
 		PutBigInt(buf, &p.OptionApprovers[i], p.IDLength)
 	}
 
@@ -188,11 +191,7 @@ func (p *BBcEvent) unpackApprovers(buf *bytes.Buffer) error {
 		return err
 	}
 
-	numOptional, err := Get2byte(buf)
-	if err != nil {
-		return err
-	}
-	for i := 0; i < int(numOptional); i++ {
+	for i := 0; i < int(p.OptionApproverNumDenominator); i++ {
 		userID, err2 := GetBigInt(buf)
 		if err2 != nil {
 			return err2

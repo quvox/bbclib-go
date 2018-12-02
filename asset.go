@@ -172,9 +172,7 @@ func (p *BBcAsset) Pack() ([]byte, error) {
 	PutBigInt(buf, &p.Nonce, len(p.Nonce))
 	Put4byte(buf, p.AssetFileSize)
 	if p.AssetFileSize > 0 {
-		if err := binary.Write(buf, binary.LittleEndian, p.AssetFileDigest); err != nil {
-			return nil, err
-		}
+		PutBigInt(buf, &p.AssetFileDigest, 32)
 	}
 
 	Put2byte(buf, p.AssetBodyType)
@@ -212,7 +210,7 @@ func (p *BBcAsset) Unpack(dat *[]byte) error {
 		return err
 	}
 	if p.AssetFileSize > 0 {
-		p.AssetFileDigest, err = GetBytes(buf, 32)
+		p.AssetFileDigest, err = GetBigInt(buf)
 		if err != nil {
 			return err
 		}

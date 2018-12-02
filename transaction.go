@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"time"
 )
 
 /*
@@ -254,6 +255,9 @@ func (p *BBcTransaction) packCrossRef(buf *bytes.Buffer) error {
 // packBase packs the base part of BBcTransaction object in binary data (from version to witness)
 func (p *BBcTransaction) packBase(buf *bytes.Buffer) error {
 	Put4byte(buf, p.Version)
+	if p.Timestamp == 0 {
+		p.Timestamp = time.Now().UnixNano() / int64(time.Microsecond)
+	}
 	Put8byte(buf, p.Timestamp)
 	Put2byte(buf, uint16(p.IDLength))
 

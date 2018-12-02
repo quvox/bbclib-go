@@ -9,10 +9,11 @@ import (
 
 // Serialized data from Python bbclib.py
 var (
-	txdataType0      = "000001000000cbeefc5b000000002000000000000100a100000020009cfa77b06efc3528c051f42d47a84e71d0f75056ae4542146b3f73c18169c9d000007900000020007a7374f7d35f5eb37a42b4551c0d98268988bdfd3084bccbdfd65c587c596d4620001e5f3cf4588e64234d88fed3e87f0fff3580c03a1dab2f55d42ec004c04cb1692000fc982c9463a8e29ffd46331fae974cb43d8f76822c3e9b92f230ad95138061e70000000000000b007472616e73666572726564010026000000010020001e5f3cf4588e64234d88fed3e87f0fff3580c03a1dab2f55d42ec004c04cb1690000000001008d0000000200000008020000042159bcbd47bcb8cb8183f6a07b06d212e3f21807d534278d7b7dbb1b93f1f0b5b956a80a0032cb411712d8bbd3beefe1a71c52866681676c30be7e6f7c556b1b000200002d426b1c5cca56e47eef0162604e00203bc4b21a544c4ce35ec67a3aee81d798f6201be300fe4a10aea61b625a07020a19e9bfa786c0aaf560c950b8e0bcec13"
-	txdataType1      = "1000789c6364606038fdee4f3490625000110c8c0c0bc1ec39bfca37e4fd31d53810f845d77d855fe185ef0161eb5c9d44b2ed8b0f36669ebcc0c050095657555cf2fd727cdce62aa72da132bc33d43a3bf6fe3568d973fafeb598889ac85c370506b9789b2f117d29cabe1dff2ebfa8e7ff6fda70c04a76b57ee815bd032c077c36662a30fc99a1332579c5a3f97fdd8ce5d74df7d962db5fd6a463377bd22783b553851b129f831dc6c0cd50529498579c965a54949ac2c8a006762c61e3219eea05924c40cc0124581423f7ec75dfb3e37463f3b705d56c97841e7f9260bf6aa2de5b5dbb5b7af2c70f5b7786ade062303aed282e7463f7e57def1f2e97096a4b6b4ccf31d857975f139a2d0d3249d7295b26e654d893baf78c49097e0c0ad647364985f8f83c8e3b5665f5aef1fa8c6f0ad28f19fe7909ac5b269d14c5cec425f972fff2b603abbe269c0cd8f160cf1b61008dcf976f"
-	assetGroupIDInTx = "9cfa77b06efc3528c051f42d47a84e71d0f75056ae4542146b3f73c18169c9d0"
-	txid             = "6d187c7ff825e46d4c0f258d08264a070f0909314c854671a15d8dbf6c983f19"
+	assetGroupIDInTx = "5464b9653aa0100abd0dd1d402e80e0de7f21f5f23d890a83585291115a90a08"
+	txdataEventRef   = "00000100000021dd035c0000000020000100ca00000020005464b9653aa0100abd0dd1d402e80e0de7f21f5f23d890a83585291115a90a080000010020009048feaeaf902a66879be3f0ee2e30a981df641b074f1fa901649002a9d065b2000000007a0000002000de36cf0094a8a7a80b4552de38d7d5de490086d60f395b468e937e1d8b9d95d020009048feaeaf902a66879be3f0ee2e30a981df641b074f1fa901649002a9d065b22000f7e4d7c82687e579662c69e952d22b26ea73eded26c363f7f0d68da8e5c500230000000000000c006576656e745f61737365743202004a00000020005464b9653aa0100abd0dd1d402e80e0de7f21f5f23d890a83585291115a90a082000573b5b63d6c7333f12ebff55330f2e06147438c633219f40c4de9688af3de3ef0000010000004a00000020005464b9653aa0100abd0dd1d402e80e0de7f21f5f23d890a83585291115a90a082000573b5b63d6c7333f12ebff55330f2e06147438c633219f40c4de9688af3de3ef01000100010000000100020000000000000002008d000000020000000802000004a8309fa78e3a9025668f82b4e07c7324693ed5b2c4fe65506c861189b53df39c75eb874b7de6773dd41a801357d3b7cca21ba5b189e9a4e5d262b77d1dc3a5c400020000924e10d1cfff15b0e28a25ebf2700392112beeb9abb137d8e06dc1443354c24a45355d1eb288c851848da9dc99b828526bd852d2fc528b9c5f3ae2c5417c808f8d000000020000000802000004862f5a212ab0db12d10e19f07a18a40248ac90f320061c27ff6f7cb87a0be8e2a231daf61077c2ec37dd9eee6e961e0fd7ca09fa965f62a7c39b7ce84821dc4500020000f43f16b5db01fdd0a33d3d5d9abf2cca9b2cb1bde5be4735faa935a6d3b77b3877607e538b75b1c09df1271958b5717d979d63cbe9e38d4b8f67254f961550f1"
+	txidEventRef     = "667fd62ae54dd91e1138006d9d7cf9b4c11d27b297d3effb8e8fc1957fda1c4f"
+	txdataRelation   = "1000789c6364606050bccb1c03a4181440040313c329303b246567aad50201aebdbc17af30bde0e37dfe493e5ef9c68415a6ad9a82a22bb93818195480aac2ada393af1d37b6177afd3fd4985f8f4da4c4e298b1e27c8723f7a675acb77dfc9e81a1066cdab5effb9397a4276c75fb7f71d794d72c9d192ecf59531accf535b8ff5df67df13d58816182c7bf75eb2768a5b5cf7efce19d9ec1cac6fb29d2ecfef22b19532630adbc90ba4981c1eaf0f93373fdcd62435664b3b8bace6e6239da2bcb72e8874579bd4df659311169b0f319f8188a5273124b32f3f3e2138b8b534b5e11e91b37a0aab4fa6b5a4f7d6fca095a30e4ceadf9b9e5a0acfaa6e997dfffeeeb3f38b5fe968c3f2350cd3db3f30c53562c5fc1ed1a74cfe2fad57b9e0c6dd7f82da3ddfa26d7c976cf9d7aa10a6cdfceb46793df2fc8f791b03d23afc4ba523cf1e704860235ff68e3cf73671aaf5868a7c0e0c073f2d005b93787231eddcfcd083b71bce19848a3cb6effee7cafda9d7398fa2e2b306c9fbfc9c0b240e4b62db7e57b5b852d1b4c5e4d9ac8cdf34337e2dd97836989896220df3232f03034a52c4e4c4a3e736271446414238317380e098727c89584dcc00836ab174c3230700009961506f397f7594d504deb6fdaf2a0a65825d3eeeaa623ff520372da043bb7da7e9e53fabaddbbf659b9ed15a906e1f0cbdbcf2c925ebab1f3e592a79792b6d7ca1e5e7a046492f1950d82731b576f49b8d4cae1b13c73fe79f6c99a0a7cea8b8dae1fe6bd6fb5b6c9329a57bddc2e9dafadf2d3a7f495b2ce515e3b4ef69e9cfa62a5ad48969765342b8a83daf4a314b536dc16bac827f9a14a620993c79a099f15d864d4ffe7d7eca8e27ef16891e1ad6f02e587de98df9df72e6f9a1cfff5539cbfa6c5272d3f3cbbe68587e21d57904962f1eb13255687ec133bb1554665e299c987b5ab676e6eaa9b77fb8d9f58e3bf8483bf5a63139994040feb6fb939efdc6497ed194fb38e447baceeb78893e0af0fd9c40300c7b55581"
+	txidRelation     = "c390caecc3a4e46dc7f45db9fc4d56373d33dfe2f2692075f7e2f79e348915db"
 	txobj            *BBcTransaction
 	txobj2           *BBcTransaction
 	txobj3           *BBcTransaction
@@ -37,7 +38,7 @@ func TestBBcLibUtilitiesTx1(t *testing.T) {
 		filedat, _ := ioutil.ReadFile("./asset_test.go")
 		AddEventAssetFile(txobj, 1, &assetGroupID, &u2, &filedat)
 		txobj.Events[1].AddMandatoryApprover(&u2)
-		datobj := map[int]string{1: "aaa", 2: "bbb", 10: "ccc"}
+		datobj := map[string]string{"param1": "aaa", "param2": "bbb", "param3": "ccc"}
 		AddEventAssetBodyObject(txobj, 2, &assetGroupID, &u1, &datobj)
 		txobj.Events[2].AddMandatoryApprover(&u1)
 
@@ -83,6 +84,12 @@ func TestBBcLibUtilitiesTx2(t *testing.T) {
 		AddReference(txobj2, &assetGroupID, txobj, 1)
 		txobj2.References[1].AddApprover(&u2)
 
+		crs := BBcCrossRef{}
+		txobj2.AddCrossRef(&crs)
+		dom := GetIdentifier("dummy domain", defaultIDLength)
+		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIDLength)
+		crs.Add(&dom, &dummyTxid)
+
 		SignToTransaction(txobj2, &u1, &keypair1)
 		SignToTransaction(txobj2, &u2, &keypair2)
 
@@ -116,10 +123,10 @@ func TestBBcLibUtilitiesTx3(t *testing.T) {
 		AddRelationAssetBodyString(txobj3, 0, &assetGroupID, &u1, "teststring!!!!!")
 		filedat, _ := ioutil.ReadFile("./crossref_test.go")
 		AddRelationAssetFile(txobj3, 1, &assetGroupID, &u2, &filedat)
-		datobj := map[int]string{1: "aaa", 2: "bbb", 10: "ccc"}
+		datobj := map[string]string{"param1": "aaa", "param2": "bbb", "param3": "ccc"}
 		AddRelationAssetBodyObject(txobj3, 2, &assetGroupID, &u1, &datobj)
 
-		datobj2 := map[int]string{1000: "lll", 22: "gggg", 100: "ddd"}
+		datobj2 := map[string]string{"param1": "lll", "param2": "gggg", "param3": "ddd"}
 		rtn := MakeRelationWithAsset(&assetGroupID, &u2, "", &datobj2, nil, 32)
 		txobj3.AddRelation(rtn)
 
@@ -154,37 +161,15 @@ func TestBBcLibUtilitiesTx3(t *testing.T) {
 
 		if bytes.Compare(txobj3.Relations[0].Asset.AssetID, obj2.Relations[0].Asset.AssetID) != 0 ||
 			bytes.Compare(txobj3.TransactionID, obj2.TransactionID) != 0 ||
-			len(obj2.Witness.SigIndices) != 2 || len(obj2.Witness.SigIndices) != 2 {
+			len(txobj3.Witness.SigIndices) != 2 || len(obj2.Witness.SigIndices) != 2 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})
 }
 
-func TestBBcLibUtilitiesTx4(t *testing.T) {
+func TestBBcLibSerializeDeserialize(t *testing.T) {
 	t.Run("simple serialize and deserialize", func(t *testing.T) {
-		dat, err := Serialize(txobj, FormatPlain)
-		if err != nil {
-			t.Fatalf("failed to serialize transaction object (%v)", err)
-		}
-		t.Logf("Serialized data: %x", dat)
-		t.Logf("Serialized data size: %d", len(dat))
-
-		obj2, err := Deserialize(dat)
-		if err != nil {
-			t.Fatalf("failed to deserialize transaction data (%v)", err)
-		}
-		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", obj2.IDLength)
-		t.Logf("%v", obj2.Stringer())
-		t.Log("--------------------------------------")
-
-		if bytes.Compare(txobj.TransactionID, obj2.TransactionID) != 0 {
-			t.Fatal("Not recovered correctly...")
-		}
-	})
-
-	t.Run("serialize and deserialize with zlib", func(t *testing.T) {
-		dat, err := Serialize(txobj2, FormatZlib)
+		dat, err := Serialize(txobj2, FormatPlain)
 		if err != nil {
 			t.Fatalf("failed to serialize transaction object (%v)", err)
 		}
@@ -204,47 +189,69 @@ func TestBBcLibUtilitiesTx4(t *testing.T) {
 			t.Fatal("Not recovered correctly...")
 		}
 	})
-}
 
-func TestBBcLibSerializeDeserialze(t *testing.T) {
-	t.Run("deserialize txdata genarated (type0) by python bbclib", func(t *testing.T) {
-		dat, _ := hex.DecodeString(txdataType0)
-		txobj2, err := Deserialize(dat)
+	t.Run("serialize and deserialize with zlib", func(t *testing.T) {
+		dat, err := Serialize(txobj3, FormatZlib)
+		if err != nil {
+			t.Fatalf("failed to serialize transaction object (%v)", err)
+		}
+		t.Logf("Serialized data: %x", dat)
+		t.Logf("Serialized data size: %d", len(dat))
+
+		obj2, err := Deserialize(dat)
 		if err != nil {
 			t.Fatalf("failed to deserialize transaction data (%v)", err)
 		}
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", txobj2.IDLength)
-		t.Logf("%v", txobj2.Stringer())
+		t.Logf("id_length: %d", obj2.IDLength)
+		t.Logf("%v", obj2.Stringer())
 		t.Log("--------------------------------------")
 
-		txidOrg, _ := hex.DecodeString(txid)
-		if bytes.Compare(txobj2.TransactionID, txidOrg) != 0 {
+		if bytes.Compare(txobj3.TransactionID, obj2.TransactionID) != 0 {
+			t.Fatal("Not recovered correctly...")
+		}
+	})
+}
+
+func TestBBcLibSerializeDeserializePythonData(t *testing.T) {
+	t.Run("deserialize txdata genarated (type0) by python bbclib", func(t *testing.T) {
+		dat, _ := hex.DecodeString(txdataEventRef)
+		txobj4, err := Deserialize(dat)
+		if err != nil {
+			t.Fatalf("failed to deserialize transaction data (%v)", err)
+		}
+		t.Log("--------------------------------------")
+		t.Logf("id_length: %d", txobj4.IDLength)
+		t.Logf("%v", txobj4.Stringer())
+		t.Log("--------------------------------------")
+
+		txidOrg, _ := hex.DecodeString(txidEventRef)
+		if bytes.Compare(txobj4.TransactionID, txidOrg) != 0 {
 			t.Fatal("Not recovered correctly...1")
 		}
 		asgidOrg, _ := hex.DecodeString(assetGroupIDInTx)
-		if bytes.Compare(txobj2.Relations[0].AssetGroupID, asgidOrg) != 0 {
+		if bytes.Compare(txobj4.Events[0].AssetGroupID, asgidOrg) != 0 {
 			t.Fatal("Not recovered correctly...2")
 		}
 	})
 
 	t.Run("deserialize txdata genarated (type0x0010) by python bbclib", func(t *testing.T) {
-		dat, _ := hex.DecodeString(txdataType1)
-		txobj2, err := Deserialize(dat)
+		dat, _ := hex.DecodeString(txdataRelation)
+		txobj5, err := Deserialize(dat)
 		if err != nil {
 			t.Fatalf("failed to deserialize transaction data (%v)", err)
 		}
 		t.Log("--------------------------------------")
-		t.Logf("id_length: %d", txobj2.IDLength)
-		t.Logf("%v", txobj2.Stringer())
+		t.Logf("id_length: %d", txobj5.IDLength)
+		t.Logf("%v", txobj5.Stringer())
 		t.Log("--------------------------------------")
 
-		txidOrg, _ := hex.DecodeString(txid)
-		if bytes.Compare(txobj2.TransactionID, txidOrg) != 0 {
+		txidOrg, _ := hex.DecodeString(txidRelation)
+		if bytes.Compare(txobj5.TransactionID, txidOrg) != 0 {
 			t.Fatal("Not recovered correctly...1")
 		}
 		asgidOrg, _ := hex.DecodeString(assetGroupIDInTx)
-		if bytes.Compare(txobj2.Relations[0].AssetGroupID, asgidOrg) != 0 {
+		if bytes.Compare(txobj5.Relations[0].AssetGroupID, asgidOrg) != 0 {
 			t.Fatal("Not recovered correctly...2")
 		}
 	})

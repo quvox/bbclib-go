@@ -39,6 +39,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"time"
 )
 
 // Header values for serialized data
@@ -114,6 +115,7 @@ func Deserialize(dat []byte) (*BBcTransaction, error) {
 // MakeTransaction is a utility for making simple BBcTransaction object with BBcEvent, BBcRelation or/and BBcWitness
 func MakeTransaction(eventNum, relationNum int, witness bool, idLength int) *BBcTransaction {
 	txobj := BBcTransaction{Version: 1, IDLength: idLength}
+	txobj.Timestamp = time.Now().UnixNano() / int64(time.Microsecond)
 
 	for i := 0; i < eventNum; i++ {
 		evt := BBcEvent{}
