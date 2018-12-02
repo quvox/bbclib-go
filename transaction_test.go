@@ -241,7 +241,8 @@ func TestTransactionPackUnpackSimpleWithEvent(t *testing.T) {
 		}
 
 		if bytes.Compare(txobj3.Events[0].Asset.AssetID, obj2.Events[0].Asset.AssetID) != 0 ||
-			bytes.Compare(txobj3.TransactionID, obj2.TransactionID) != 0 {
+			bytes.Compare(txobj3.TransactionID, obj2.TransactionID) != 0 ||
+			len(obj2.References[0].SigIndices) != 2 {
 			t.Fatal("Not recovered correctly...")
 		}
 	})

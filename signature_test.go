@@ -68,8 +68,7 @@ func TestSignaturePackUnpack(t *testing.T) {
 		}
 		t.Logf("Packed data: %x", dat)
 
-		obj2 := BBcSignature{}
-		obj2.Unpack(&dat)
+		obj2 := RecoverSignatureObject(&dat)
 		t.Log("---------------transaction-----------------")
 		t.Logf("%v", obj2.Stringer())
 		t.Log("--------------------------------------")

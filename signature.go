@@ -126,3 +126,10 @@ func (p *BBcSignature) Unpack(dat *[]byte) error {
 
 	return nil
 }
+
+// RecoverSignatureObject is a utility for recovering signature data into BBcSignature object
+func RecoverSignatureObject(dat *[]byte) *BBcSignature {
+	sig := BBcSignature{}
+	sig.Unpack(dat)
+	return &sig
+}

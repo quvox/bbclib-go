@@ -113,7 +113,8 @@ func Deserialize(dat []byte) (*BBcTransaction, error) {
 
 // MakeTransaction is a utility for making simple BBcTransaction object with BBcEvent, BBcRelation or/and BBcWitness
 func MakeTransaction(eventNum, relationNum int, witness bool, idLength int) *BBcTransaction {
-	txobj := BBcTransaction{IDLength: idLength}
+	txobj := BBcTransaction{Version: 1, IDLength: idLength}
+
 	for i := 0; i < eventNum; i++ {
 		evt := BBcEvent{}
 		txobj.AddEvent(&evt)
@@ -192,7 +193,7 @@ func AddPointerInRelation(relation *BBcRelation, refTransaction *BBcTransaction,
 }
 
 // AddReference creates and includes a BBcReference object in a BBcTransaction object
-func AddReference(transaction *BBcTransaction, assetGroupID, userID *[]byte, refTransaction *BBcTransaction, eventIdx int) {
+func AddReference(transaction *BBcTransaction, assetGroupID *[]byte, refTransaction *BBcTransaction, eventIdx int) {
 	if transaction == nil || refTransaction == nil {
 		return
 	}
@@ -261,9 +262,11 @@ func MakeRelationWithAsset(assetGroupID, userID *[]byte, assetBodyString string,
 	return &rtn
 }
 
-// RecoverSignatureObject is a utility for recovering signature data into BBcSignature object
-func RecoverSignatureObject(dat *[]byte) *BBcSignature {
+// SignToTransaction signs the transaction and append the BBcSignature object to it
+func SignToTransaction(transaction *BBcTransaction, userID *[]byte, keypair *KeyPair) {
 	sig := BBcSignature{}
-	sig.Unpack(dat)
-	return &sig
+	sig.SetPublicKeyByKeypair(keypair)
+	signature, _ := transaction.Sign(keypair)
+	sig.SetSignature(&signature)
+	transaction.AddSignature(userID, &sig)
 }
