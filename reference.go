@@ -90,21 +90,21 @@ func (p *BBcReference) AddApprover(userID *[]byte) error {
 
 	flag := false
 	for _, m := range p.RefEvent.MandatoryApprovers {
-		if reflect.DeepEqual(m, userID) {
+		if reflect.DeepEqual(m, *userID) {
 			flag = true
 			break
 		}
 	}
 	if !flag {
 		for _, o := range p.RefEvent.OptionApprovers {
-			if reflect.DeepEqual(o, userID) {
+			if reflect.DeepEqual(o, *userID) {
 				flag = true
 				break
 			}
 		}
 	}
 	if !flag {
-		return errors.New("no user is specified as approver")
+		return errors.New("the user is not specified as approver")
 	}
 
 	idx := p.Transaction.GetSigIndex(*userID)

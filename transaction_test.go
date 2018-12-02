@@ -103,6 +103,8 @@ func TestTransactionPackUnpackSimple(t *testing.T) {
 
 func TestTransactionPackUnpackSimpleWithEvent(t *testing.T) {
 	txobj2 := BBcTransaction{Version: 1, Timestamp: time.Now().UnixNano(), IDLength: defaultIDLength}
+	u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
+	u2 := GetIdentifierWithTimestamp("user2", defaultIDLength)
 	t.Run("simple creation (with event)", func(t *testing.T) {
 		keypair := GenerateKeypair(KeyTypeEcdsaP256v1, defaultCompressionMode)
 		evt := BBcEvent{}
@@ -113,14 +115,12 @@ func TestTransactionPackUnpackSimpleWithEvent(t *testing.T) {
 		txobj2.AddWitness(&wit)
 
 		ast := BBcAsset{IDLength: defaultIDLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
 		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIDLength)
 		evt.Add(&assetgroup, &ast)
 
-		u2 := GetIdentifierWithTimestamp("user2", defaultIDLength)
 		evt.AddMandatoryApprover(&u1)
 		evt.AddMandatoryApprover(&u2)
 		evt.AddOptionParams(2, 1)
@@ -174,14 +174,12 @@ func TestTransactionPackUnpackSimpleWithEvent(t *testing.T) {
 		txobj3.AddCrossRef(&crs)
 
 		ast := BBcAsset{IDLength: defaultIDLength}
-		u1 := GetIdentifier("user1_789abcdef0123456789abcdef0", defaultIDLength)
 		ast.Add(&u1)
 		ast.AddBodyString("testString12345XXX")
 
 		assetgroup := GetIdentifier("asset_group_id1,,,,,,,", defaultIDLength)
 		evt.Add(&assetgroup, &ast)
 
-		u2 := GetIdentifierWithTimestamp("user2", defaultIDLength)
 		evt.AddMandatoryApprover(&u1)
 		evt.AddMandatoryApprover(&u2)
 		evt.AddOptionParams(2, 1)
@@ -190,13 +188,19 @@ func TestTransactionPackUnpackSimpleWithEvent(t *testing.T) {
 		ref.AddApprover(&u1)
 		ref.AddApprover(&u2)
 
+		u3 := GetIdentifierWithTimestamp("user3", defaultIDLength)
+		err := ref.AddApprover(&u3)
+		if err == nil {
+			t.Fatal("The user (user3) is not an approver")
+		}
+
 		dom := GetIdentifier("dummy domain", defaultIDLength)
 		dummyTxid := GetIdentifierWithTimestamp("dummytxid", defaultIDLength)
 		crs.Add(&dom, &dummyTxid)
 
 		sig := BBcSignature{}
 		sig.SetPublicKeyByKeypair(&keypair)
-		signature, err := txobj2.Sign(&keypair)
+		signature, err := txobj3.Sign(&keypair)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -205,7 +209,7 @@ func TestTransactionPackUnpackSimpleWithEvent(t *testing.T) {
 
 		sig2 := BBcSignature{}
 		sig2.SetPublicKeyByKeypair(&keypair)
-		signature2, err := txobj2.Sign(&keypair)
+		signature2, err := txobj3.Sign(&keypair)
 		if err != nil {
 			t.Fatal(err)
 		}
