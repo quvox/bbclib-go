@@ -22,7 +22,7 @@ import (
 )
 
 /*
-This is the BBcPointer definition.
+BBcPointer definition
 
 BBcPointer(s) are included in BBcRelation object. A BBcPointer object includes "TransactionID" and "AssetID" and
 declares that the transaction has a certain relationship with the BBcTransaction and BBcAsset object specified by those IDs.
@@ -37,14 +37,14 @@ type (
 	}
 )
 
-// Output content of the object
+// Stringer outputs the content of the object
 func (p *BBcPointer) Stringer() string {
 	ret := fmt.Sprintf("     transaction_id: %x\n", p.TransactionID)
 	ret += fmt.Sprintf("     asset_id: %x\n", p.AssetID)
 	return ret
 }
 
-// Add essential information to the BBcPointer object
+// Add sets essential information to the BBcPointer object
 func (p *BBcPointer) Add(txid *[]byte, asid *[]byte) {
 	if txid != nil {
 		p.TransactionID = make([]byte, p.IDLength)
@@ -56,7 +56,7 @@ func (p *BBcPointer) Add(txid *[]byte, asid *[]byte) {
 	}
 }
 
-// Pack BBcPointer object in binary data
+// Pack returns the binary data of the BBcPointer object
 func (p *BBcPointer) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -74,7 +74,7 @@ func (p *BBcPointer) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Unpack binary data to BBcPointer object
+// Unpack the BBcPointer object to the binary data
 func (p *BBcPointer) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)
@@ -86,11 +86,9 @@ func (p *BBcPointer) Unpack(dat *[]byte) error {
 
 	if val, err := Get2byte(buf); err != nil {
 		return err
-	} else {
-		if val == 0 {
-			p.AssetID = nil
-			return nil
-		}
+	} else if val == 0 {
+		p.AssetID = nil
+		return nil
 	}
 
 	p.AssetID, err = GetBigInt(buf)

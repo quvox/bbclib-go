@@ -54,7 +54,7 @@ var (
 	mh codec.MsgpackHandle
 )
 
-// Encode object in messagepack data
+// encodeMessagePack encodes object in messagepack data
 func encodeMessagePack(values interface{}) ([]byte, error) {
 	buf := make([]byte, 0, 65536)
 
@@ -65,7 +65,7 @@ func encodeMessagePack(values interface{}) ([]byte, error) {
 	return buf, nil
 }
 
-// Decode messagepack data
+// decodeMessagePack decodes messagepack data
 func decodeMessagePack(buf []byte) (interface{}, error) {
 	var values interface{}
 
@@ -76,7 +76,7 @@ func decodeMessagePack(buf []byte) (interface{}, error) {
 	return values, nil
 }
 
-// Output content of the object
+// Stringer outputs the content of the object
 func (p *BBcAsset) Stringer() string {
 	ret := "  Asset:\n"
 	ret += fmt.Sprintf("     asset_id: %x\n", p.AssetID)
@@ -93,7 +93,7 @@ func (p *BBcAsset) Stringer() string {
 	return ret
 }
 
-// Add userID in the BBcAsset object
+// Add sets userID in the BBcAsset object
 func (p *BBcAsset) Add(userID *[]byte) {
 	if userID != nil {
 		if p.IDLength == 0 {
@@ -105,7 +105,7 @@ func (p *BBcAsset) Add(userID *[]byte) {
 	p.Nonce = GetRandomValue(p.IDLength)
 }
 
-// Add file in the BBcAsset object
+// AddFile add the digest of file in the BBcAsset object
 // Note that this method adds the SHA256 digest of the file content (not file binary itself)
 func (p *BBcAsset) AddFile(fileContent *[]byte) {
 	p.AssetFileSize = uint32(binary.Size(fileContent))
@@ -113,14 +113,14 @@ func (p *BBcAsset) AddFile(fileContent *[]byte) {
 	p.AssetFileDigest = digest[:]
 }
 
-// Add string data in the BBcAsset object
+// AddBodyString sets a string data in the BBcAsset object
 func (p *BBcAsset) AddBodyString(bodyContent string) {
 	p.AssetBodyType = 0
 	p.AssetBody = []byte(bodyContent)
 	p.AssetBodySize = uint16(len(bodyContent))
 }
 
-// Add the object data in the BBcAsset object and convert it in MessagePack format
+// AddBodyObject sets an object data in the BBcAsset object and convert it in MessagePack format
 func (p *BBcAsset) AddBodyObject(bodyContent interface{}) error {
 	p.AssetBodyType = 1
 	var err error
@@ -132,7 +132,7 @@ func (p *BBcAsset) AddBodyObject(bodyContent interface{}) error {
 	return nil
 }
 
-// Get the object which is in MessagePack format
+// GetBodyObject returns the object which is in MessagePack format
 func (p *BBcAsset) GetBodyObject() (interface{}, error) {
 	if p.AssetBodyType != 1 {
 		return nil, nil
@@ -140,7 +140,7 @@ func (p *BBcAsset) GetBodyObject() (interface{}, error) {
 	return decodeMessagePack(p.AssetBody)
 }
 
-// Calculate the AssetID value of the BBcAsset object
+// Digest calculates the SHA256 digest of the AssetID value of the BBcAsset object
 func (p *BBcAsset) Digest() []byte {
 	p.digestCalculating = true
 	asset, err := p.Pack()
@@ -158,7 +158,7 @@ func (p *BBcAsset) Digest() []byte {
 	return digest[:]
 }
 
-// Pack BBcAsset object in binary data
+// Pack returns the binary data of the BBcAsset object
 func (p *BBcAsset) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -187,7 +187,7 @@ func (p *BBcAsset) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Unpack binary data to BBcAsset object
+// Unpack the BBcAsset object to the binary data
 func (p *BBcAsset) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)

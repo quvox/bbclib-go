@@ -43,7 +43,7 @@ type (
 	}
 )
 
-// Output content of the object
+// Stringer outputs the content of the object
 func (p *BBcWitness) Stringer() string {
 	ret := "Witness:\n"
 	if p.UserIDs != nil {
@@ -58,12 +58,12 @@ func (p *BBcWitness) Stringer() string {
 	return ret
 }
 
-// Set pointer to the parent transaction object
+// SetTransaction links the BBcWitness object to the parent transaction object
 func (p *BBcWitness) SetTransaction(txobj *BBcTransaction) {
 	p.Transaction = txobj
 }
 
-// Make a memo for managing signer who sign this BBcTransaction object
+// AddWitness makes a memo for managing signer who sign this BBcTransaction object
 // This must be done before AddSignature.
 func (p *BBcWitness) AddWitness(userID *[]byte) error {
 	if p.Transaction == nil {
@@ -75,7 +75,7 @@ func (p *BBcWitness) AddWitness(userID *[]byte) error {
 	return nil
 }
 
-// Add BBcSignature to the parent BBcTransaction and the position in the Signatures list in BBcTransaction is based on the UserID
+// AddSignature sets the BBcSignature to the parent BBcTransaction and the position in the Signatures list in BBcTransaction is based on the UserID
 func (p *BBcWitness) AddSignature(userID *[]byte, sig *BBcSignature) error {
 	if p.Transaction == nil {
 		return errors.New("transaction must be set")
@@ -84,7 +84,7 @@ func (p *BBcWitness) AddSignature(userID *[]byte, sig *BBcSignature) error {
 	return nil
 }
 
-// Pack BBcWitness object in binary data
+// Pack returns the binary data of the BBcWitness object
 func (p *BBcWitness) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -97,7 +97,7 @@ func (p *BBcWitness) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Unpack binary data to BBcWitness object
+// Unpack the BBcWitness object to the binary data
 func (p *BBcWitness) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)

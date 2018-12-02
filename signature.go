@@ -24,7 +24,7 @@ import (
 )
 
 /*
-This is the BBcSignature definition.
+BBcSignature definition
 
 The BBcSignature holds public key and signature. The signature is for the TransactionID of the transaction object.
 */
@@ -38,7 +38,7 @@ type (
 	}
 )
 
-// Output content of the object
+// Stringer outputs the content of the object
 func (p *BBcSignature) Stringer() string {
 	if p.KeyType == KeyTypeNotInitialized {
 		return "  Not initialized\n"
@@ -49,21 +49,21 @@ func (p *BBcSignature) Stringer() string {
 	return ret
 }
 
-// Set signature binary in the object
+// SetPublicKey sets signature binary in the object
 func (p *BBcSignature) SetPublicKey(keyType uint32, pubkey *[]byte) {
 	p.KeyType = keyType
 	p.Pubkey = *pubkey
 	p.PubkeyLen = uint32(len(p.Pubkey) * 8)
 }
 
-// Set public key (keypair object) in the object
+// SetPublicKeyByKeypair sets public key (in keypair object) in the object
 func (p *BBcSignature) SetPublicKeyByKeypair(keypair *KeyPair) {
 	p.KeyType = uint32(keypair.CurveType)
 	p.Pubkey = keypair.Pubkey
 	p.PubkeyLen = uint32(len(p.Pubkey) * 8)
 }
 
-// Set signature binary in the object
+// SetSignature sets signature binary in the object
 func (p *BBcSignature) SetSignature(sig *[]byte) {
 	p.Signature = *sig
 	p.SignatureLen = uint32(len(p.Signature) * 8)
@@ -74,7 +74,7 @@ func (p *BBcSignature) Verify(digest []byte) bool {
 	return VerifyBBcSignature(digest, p)
 }
 
-// Pack BBcSignature object in binary data
+// Pack returns the binary data of the BBcSignature object
 func (p *BBcSignature) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -96,7 +96,7 @@ func (p *BBcSignature) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Unpack binary data to BBcSignature object
+// Unpack the BBcSignature object to the binary data
 func (p *BBcSignature) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)

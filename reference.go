@@ -24,7 +24,7 @@ import (
 )
 
 /*
-This is the BBcReference definition.
+BBcReference definition
 
 The BBcReference is an input of UTXO (Unspent Transaction Output) structure and this object must accompanied by a BBcEvent object because it is an output of UTXO.
 
@@ -49,7 +49,7 @@ type (
 	}
 )
 
-// Output content of the object
+// Stringer outputs the content of the object
 func (p *BBcReference) Stringer() string {
 	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupID)
 	ret += fmt.Sprintf("  transaction_id: %x\n", p.TransactionID)
@@ -58,12 +58,12 @@ func (p *BBcReference) Stringer() string {
 	return ret
 }
 
-// Set pointer to the parent transaction object
+// SetTransaction links the BBcReference object to the parent transaction object
 func (p *BBcReference) SetTransaction(txobj *BBcTransaction) {
 	p.Transaction = txobj
 }
 
-// Add essential information to the BBcReference object
+// Add sets essential information to the BBcReference object
 func (p *BBcReference) Add(assetGroupID *[]byte, refTransaction *BBcTransaction, eventIdx int) {
 	if assetGroupID != nil {
 		p.AssetGroupID = make([]byte, p.IDLength)
@@ -79,7 +79,7 @@ func (p *BBcReference) Add(assetGroupID *[]byte, refTransaction *BBcTransaction,
 	}
 }
 
-// Make a memo for managing approvers who sign this BBcTransaction object
+// AddApprover makes a memo for managing approvers who sign this BBcTransaction object
 func (p *BBcReference) AddApprover(userID *[]byte) error {
 	if p.Transaction == nil {
 		return errors.New("transaction must be set")
@@ -112,7 +112,7 @@ func (p *BBcReference) AddApprover(userID *[]byte) error {
 	return nil
 }
 
-// Add BBcSignature object in the object
+// AddSignature sets the BBcSignature object in the object
 func (p *BBcReference) AddSignature(userID *[]byte, sig *BBcSignature) error {
 	if p.Transaction == nil {
 		return errors.New("transaction must be set")
@@ -121,7 +121,7 @@ func (p *BBcReference) AddSignature(userID *[]byte, sig *BBcSignature) error {
 	return nil
 }
 
-// Pack BBcReference object in binary data
+// Pack returns the binary data of the BBcReference object
 func (p *BBcReference) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -136,7 +136,7 @@ func (p *BBcReference) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Add essential information to the BBcReference object
+// Unpack the BBcReference object to the binary data
 func (p *BBcReference) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)

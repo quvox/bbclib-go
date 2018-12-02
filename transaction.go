@@ -26,7 +26,7 @@ import (
 )
 
 /*
-This is the BBcTransaction definition.
+BBcTransaction definition
 
 BBcTransaction is just a container of various objects.
 
@@ -68,7 +68,7 @@ type (
 	}
 )
 
-// Output content of the object
+// Stringer outputs the content of the object
 func (p *BBcTransaction) Stringer() string {
 	var ret string
 	ret = "------- Dump of the transaction data ------\n"
@@ -117,39 +117,39 @@ func (p *BBcTransaction) Stringer() string {
 	return ret
 }
 
-// Add BBcEvent object in the transaction object
+// AddEvent adds the BBcEvent object in the transaction object
 func (p *BBcTransaction) AddEvent(obj *BBcEvent) {
 	obj.IDLength = p.IDLength
 	p.Events = append(p.Events, obj)
 }
 
-// Add BBcReference object in the transaction object
+// AddReference adds the BBcReference object in the transaction object
 func (p *BBcTransaction) AddReference(obj *BBcReference) {
 	obj.IDLength = p.IDLength
 	p.References = append(p.References, obj)
 	obj.Transaction = p
 }
 
-// Add BBcRelation object in the transaction object
+// AddRelation adds the BBcRelation object in the transaction object
 func (p *BBcTransaction) AddRelation(obj *BBcRelation) {
 	obj.IDLength = p.IDLength
 	p.Relations = append(p.Relations, obj)
 }
 
-// Add BBcWitness object in the transaction object
+// AddWitness sets the BBcWitness object in the transaction object
 func (p *BBcTransaction) AddWitness(obj *BBcWitness) {
 	obj.IDLength = p.IDLength
 	p.Witness = obj
 	obj.Transaction = p
 }
 
-// Add BBcCrossRef object in the transaction object
+// AddCrossRef sets the BBcCrossRef object in the transaction object
 func (p *BBcTransaction) AddCrossRef(obj *BBcCrossRef) {
 	obj.IDLength = p.IDLength
 	p.Crossref = obj
 }
 
-// Add BBcSignature object for the specified userID in the transaction object
+// AddSignature adds the BBcSignature object for the specified userID in the transaction object
 func (p *BBcTransaction) AddSignature(userID *[]byte, sig *BBcSignature) {
 	for i := range p.SigIndices {
 		if reflect.DeepEqual(p.SigIndices[i], userID) {
@@ -163,7 +163,7 @@ func (p *BBcTransaction) AddSignature(userID *[]byte, sig *BBcSignature) {
 	p.Signatures = append(p.Signatures, sig)
 }
 
-// Get position (index) of the corespondent userID in the signature list
+// GetSigIndex reserves and returns the position (index) of the corespondent userID in the signature list
 func (p *BBcTransaction) GetSigIndex(userID []byte) int {
 	var i = -1
 	for i = range p.SigIndices {
@@ -187,7 +187,7 @@ func (p *BBcTransaction) Sign(keypair *KeyPair) ([]byte, error) {
 	return signature, nil
 }
 
-// Verify TransactionID with all BBcSignature objects in the transaction
+// VerifyAll verifies TransactionID with all BBcSignature objects in the transaction
 func (p *BBcTransaction) VerifyAll() (bool, int) {
 	digest := p.Digest()
 	for i := range p.Signatures {
@@ -201,7 +201,7 @@ func (p *BBcTransaction) VerifyAll() (bool, int) {
 	return true, -1
 }
 
-// Calculate TransactionID of the BBcTransaction object
+// Digest calculates TransactionID of the BBcTransaction object
 func (p *BBcTransaction) Digest() []byte {
 	p.digestCalculating = true
 	if p.TransactionID == nil {
@@ -233,7 +233,7 @@ func (p *BBcTransaction) Digest() []byte {
 	return digest[:]
 }
 
-// Pack only BBcCrossRef object in binary data
+// packCrossRef packs only BBcCrossRef object in binary data
 func (p *BBcTransaction) packCrossRef(buf *bytes.Buffer) error {
 	if p.Crossref != nil {
 		dat, err := p.Crossref.Pack()
@@ -251,7 +251,7 @@ func (p *BBcTransaction) packCrossRef(buf *bytes.Buffer) error {
 	return nil
 }
 
-// Pack the base part of BBcTransaction object in binary data (from version to witness)
+// packBase packs the base part of BBcTransaction object in binary data (from version to witness)
 func (p *BBcTransaction) packBase(buf *bytes.Buffer) error {
 	Put4byte(buf, p.Version)
 	Put8byte(buf, p.Timestamp)

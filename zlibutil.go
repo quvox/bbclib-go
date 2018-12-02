@@ -22,7 +22,7 @@ import (
 	"io"
 )
 
-// Compress given data using zlib
+// ZlibCompress compresses the given data using zlib
 func ZlibCompress(dat *[]byte) []byte {
 	var dstbbuf bytes.Buffer
 	zlibwriter := zlib.NewWriter(&dstbbuf)
@@ -33,7 +33,7 @@ func ZlibCompress(dat *[]byte) []byte {
 	return dstbbuf.Bytes()
 }
 
-// Decompress given data using zlib
+// ZlibDecompress decompresses the given data using zlib
 func ZlibDecompress(dat []byte) ([]byte, error) {
 	var srcbuf bytes.Buffer
 	var dstbuf bytes.Buffer

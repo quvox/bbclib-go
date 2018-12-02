@@ -23,7 +23,7 @@ import (
 )
 
 /*
-This is the BBcRelation definition.
+BBcRelation definition
 
 The BBcRelation holds the asset (by BBcAsset) and the relationship with the other transaction/asset (by BBcPointer).
 Different from UTXO, state information or account-type information can be expressed by using this object.
@@ -43,7 +43,7 @@ type (
 	}
 )
 
-// Output content of the object
+// Stringer outputs the content of the object
 func (p *BBcRelation) Stringer() string {
 	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupID)
 	if p.Pointers != nil {
@@ -63,7 +63,7 @@ func (p *BBcRelation) Stringer() string {
 	return ret
 }
 
-// Add essential information (assetGroupID and BBcAsset object) to the BBcRelation object
+// Add sets essential information (assetGroupID and BBcAsset object) to the BBcRelation object
 func (p *BBcRelation) Add(assetGroupID *[]byte, asset *BBcAsset) {
 	if assetGroupID != nil {
 		p.AssetGroupID = make([]byte, p.IDLength)
@@ -75,13 +75,13 @@ func (p *BBcRelation) Add(assetGroupID *[]byte, asset *BBcAsset) {
 	}
 }
 
-// Add BBcPointer object in the object
+// AddPointer sets the BBcPointer object in the object
 func (p *BBcRelation) AddPointer(pointer *BBcPointer) {
 	pointer.IDLength = p.IDLength
 	p.Pointers = append(p.Pointers, pointer)
 }
 
-// Pack BBcRelation object in binary data
+// Pack returns the binary data of the BBcRelation object
 func (p *BBcRelation) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -113,7 +113,7 @@ func (p *BBcRelation) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Unpack binary data to BBcRelation object
+// Unpack the BBcRelation object to the binary data
 func (p *BBcRelation) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)

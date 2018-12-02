@@ -23,7 +23,7 @@ import (
 )
 
 /*
-This is the BBcEvent definition.
+BBcEvent definition
 
 BBcEvent expresses an output of UTXO (Unspent Transaction Output) structure.
 
@@ -53,7 +53,7 @@ type (
 	}
 )
 
-// Output content of the object
+// Stringer outputs the content of the object
 func (p *BBcEvent) Stringer() string {
 	ret := fmt.Sprintf("  asset_group_id: %x\n", p.AssetGroupID)
 	if p.ReferenceIndices != nil {
@@ -87,7 +87,7 @@ func (p *BBcEvent) Stringer() string {
 	return ret
 }
 
-// Add essential information to the BBcEvent object
+// Add sets essential information to the BBcEvent object
 func (p *BBcEvent) Add(assetGroupID *[]byte, asset *BBcAsset) {
 	if assetGroupID != nil {
 		p.AssetGroupID = make([]byte, p.IDLength)
@@ -99,34 +99,34 @@ func (p *BBcEvent) Add(assetGroupID *[]byte, asset *BBcAsset) {
 	}
 }
 
-// Add ReferenceIndices to the BBcEvent object
+// AddReferenceIndex sets an index to ReferenceIndices of the BBcEvent object
 func (p *BBcEvent) AddReferenceIndex(relIndex int) {
 	if relIndex != -1 {
 		p.ReferenceIndices = append(p.ReferenceIndices, relIndex)
 	}
 }
 
-// Set OptionApproverNumNumerator and OptionApproverNumDenominator in the BBcEvent object
+// AddOptionParams sets values to OptionApproverNumNumerator and OptionApproverNumDenominator in the BBcEvent object
 func (p *BBcEvent) AddOptionParams(numerator int, denominator int) {
 	p.OptionApproverNumNumerator = uint16(numerator)
 	p.OptionApproverNumDenominator = uint16(denominator)
 }
 
-// Add userID in MandatoryApprover list of the BBcEvent object
+// AddMandatoryApprover sets userID in MandatoryApprover list of the BBcEvent object
 func (p *BBcEvent) AddMandatoryApprover(userID *[]byte) {
 	uid := make([]byte, p.IDLength)
 	copy(uid, *userID)
 	p.MandatoryApprovers = append(p.MandatoryApprovers, uid)
 }
 
-// Add userID in OptionApprover list of the BBcEvent object
+// AddOptionApprover sets userID in OptionApprover list of the BBcEvent object
 func (p *BBcEvent) AddOptionApprover(userID *[]byte) {
 	uid := make([]byte, p.IDLength)
 	copy(uid, *userID)
 	p.OptionApprovers = append(p.OptionApprovers, uid)
 }
 
-// Pack BBcEvent object in binary data
+// Pack returns the binary data of the BBcEvent object
 func (p *BBcEvent) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -165,7 +165,7 @@ func (p *BBcEvent) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Unpack binary data to BBcEvent object
+// Unpack the binary data to the BBcEvent object
 func (p *BBcEvent) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)

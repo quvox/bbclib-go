@@ -22,7 +22,7 @@ import (
 )
 
 /*
-This is the BBcCrossRef definition.
+BBcCrossRef definition
 
 CrossRef stands for CrossReference, which holds information in other domain for inter-domain collaboration of transaction authenticity.
 
@@ -44,7 +44,7 @@ const (
 	DomainIDLength = 32
 )
 
-// Output content of the object
+// Stringer outputs the content of the object
 func (p *BBcCrossRef) Stringer() string {
 	ret := "Cross_Ref:\n"
 	ret += fmt.Sprintf("  domain_id: %x\n", p.DomainID)
@@ -52,7 +52,7 @@ func (p *BBcCrossRef) Stringer() string {
 	return ret
 }
 
-// Add essential information to the BBcCrossRef object
+// Add sets essential information to the BBcCrossRef object
 func (p *BBcCrossRef) Add(domainId *[]byte, txid *[]byte) {
 	if domainId != nil {
 		p.DomainID = make([]byte, DomainIDLength)
@@ -64,7 +64,7 @@ func (p *BBcCrossRef) Add(domainId *[]byte, txid *[]byte) {
 	}
 }
 
-// Pack BBcCrossRef object in binary data
+// Pack returns binary data from the BBcCrossRef object
 func (p *BBcCrossRef) Pack() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -74,7 +74,7 @@ func (p *BBcCrossRef) Pack() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Unpack binary data to BBcCrossRef object
+// Unpack the binary data to the BBcCrossRef object
 func (p *BBcCrossRef) Unpack(dat *[]byte) error {
 	var err error
 	buf := bytes.NewBuffer(*dat)

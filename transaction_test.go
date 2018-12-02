@@ -90,6 +90,10 @@ func TestTransactionPackUnpack(t *testing.T) {
 		t.Log("--------------------------------------")
 
 		obj2.Digest()
+		if result := obj2.Signatures[0].Verify(obj2.TransactionID); !result {
+			t.Fatal("Verification failed..")
+		}
+
 		if bytes.Compare(txobj.Relations[0].Asset.AssetID, obj2.Relations[0].Asset.AssetID) != 0 ||
 			bytes.Compare(txobj.TransactionID, obj2.TransactionID) != 0 {
 			t.Fatal("Not recovered correctly...")
@@ -147,6 +151,10 @@ func TestTransactionPackUnpack(t *testing.T) {
 		t.Log("--------------------------------------")
 
 		obj2.Digest()
+		if result := obj2.Signatures[0].Verify(obj2.TransactionID); !result {
+			t.Fatal("Verification failed..")
+		}
+
 		if bytes.Compare(txobj2.Events[0].Asset.AssetID, obj2.Events[0].Asset.AssetID) != 0 ||
 			bytes.Compare(txobj2.TransactionID, obj2.TransactionID) != 0 {
 			t.Fatal("Not recovered correctly...")
@@ -219,6 +227,13 @@ func TestTransactionPackUnpack(t *testing.T) {
 		t.Log("--------------------------------------")
 
 		obj2.Digest()
+		if result := obj2.Signatures[0].Verify(obj2.TransactionID); !result {
+			t.Fatal("Verification failed..signature[0]")
+		}
+		if result := obj2.Signatures[1].Verify(obj2.TransactionID); !result {
+			t.Fatal("Verification failed..signature[1]")
+		}
+
 		if bytes.Compare(txobj3.Events[0].Asset.AssetID, obj2.Events[0].Asset.AssetID) != 0 ||
 			bytes.Compare(txobj3.TransactionID, obj2.TransactionID) != 0 {
 			t.Fatal("Not recovered correctly...")

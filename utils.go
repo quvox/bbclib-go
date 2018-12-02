@@ -25,19 +25,19 @@ import (
 	"time"
 )
 
-// Get random byte data with specified length (seed string ais used)
+// GetIdentifier returns a random byte data with specified length (seed string ais used)
 func GetIdentifier(seed string, length int) []byte {
 	digest := sha256.Sum256([]byte(seed))
 	return digest[:length]
 }
 
-// Get random byte data with specified length (seed string and timestamp are used)
+// GetIdentifierWithTimestamp returns a random byte data with specified length (seed string and timestamp are used)
 func GetIdentifierWithTimestamp(seed string, length int) []byte {
 	digest := sha256.Sum256([]byte(seed + time.Now().String()))
 	return digest[:length]
 }
 
-// Get random byte data with specified length
+// GetRandomValue returns a random byte data with specified length
 func GetRandomValue(length int) []byte {
 	val := make([]byte, length)
 	_, err := rand.Read(val)
@@ -49,14 +49,14 @@ func GetRandomValue(length int) []byte {
 	return val
 }
 
-// Put uint16 in the buffer for packing
+// Put2byte sets uint16 in the buffer for packing
 func Put2byte(buf *bytes.Buffer, val uint16) {
 	if err := binary.Write(buf, binary.LittleEndian, val); err != nil {
 		fmt.Println("Error: Put2Byte")
 	}
 }
 
-// Get uint16 value from the buffer
+// Get2byte returns a uint16 value from the buffer
 func Get2byte(buf *bytes.Buffer) (uint16, error) {
 	var val uint16
 	if err := binary.Read(buf, binary.LittleEndian, &val); err != nil {
@@ -65,14 +65,14 @@ func Get2byte(buf *bytes.Buffer) (uint16, error) {
 	return val, nil
 }
 
-// Put uint32 in the buffer for packing
+// Put4byte sets a uint32 in the buffer for packing
 func Put4byte(buf *bytes.Buffer, val uint32) {
 	if err := binary.Write(buf, binary.LittleEndian, val); err != nil {
 		fmt.Println("Error: Put4Byte")
 	}
 }
 
-// Get uint32 value from the buffer
+// Get4byte returns a uint32 value from the buffer
 func Get4byte(buf *bytes.Buffer) (uint32, error) {
 	var val uint32
 	if err := binary.Read(buf, binary.LittleEndian, &val); err != nil {
@@ -81,14 +81,14 @@ func Get4byte(buf *bytes.Buffer) (uint32, error) {
 	return val, nil
 }
 
-// Put int64 in the buffer for packing
+// Put8byte sets a int64 in the buffer for packing
 func Put8byte(buf *bytes.Buffer, val int64) {
 	if err := binary.Write(buf, binary.LittleEndian, val); err != nil {
 		fmt.Println("Error: Put8byte")
 	}
 }
 
-// Get int64 value from the buffer
+// Get8byte returns a int64 value from the buffer
 func Get8byte(buf *bytes.Buffer) (int64, error) {
 	var val int64
 	if err := binary.Read(buf, binary.LittleEndian, &val); err != nil {
@@ -97,7 +97,7 @@ func Get8byte(buf *bytes.Buffer) (int64, error) {
 	return val, nil
 }
 
-// Put ID data in the buffer for packing
+// PutBigInt sets a ID data in the buffer for packing
 func PutBigInt(buf *bytes.Buffer, val *[]byte, length int) {
 	Put2byte(buf, uint16(length))
 	if err := binary.Write(buf, binary.LittleEndian, val); err != nil {
@@ -105,7 +105,7 @@ func PutBigInt(buf *bytes.Buffer, val *[]byte, length int) {
 	}
 }
 
-// Get ID data from the buffer
+// GetBigInt returns a ID data from the buffer
 func GetBigInt(buf *bytes.Buffer) ([]byte, error) {
 	length, err := Get2byte(buf)
 	if err != nil {
@@ -114,7 +114,7 @@ func GetBigInt(buf *bytes.Buffer) ([]byte, error) {
 	return GetBytes(buf, int(length))
 }
 
-// Get binary data with specified length from the buffer
+// GetBytes returns binary data with specified length from the buffer
 func GetBytes(buf *bytes.Buffer, length int) ([]byte, error) {
 	val := make([]byte, length)
 	if err := binary.Read(buf, binary.LittleEndian, val); err != nil {

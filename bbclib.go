@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 /*
-This is a library for defining BBcTransaction. This also provides serializer/deserializer and utilities for BBcTransaction object manipulation.
+Package bbclib is a library for defining BBcTransaction. This also provides serializer/deserializer and utilities for BBcTransaction object manipulation.
 
 
 Serialization and deserialization
@@ -111,7 +111,7 @@ func Deserialize(dat []byte) (*BBcTransaction, error) {
 	return nil, errors.New("formatType not supported")
 }
 
-// Utility for making simple BBcTransaction object with BBcEvent, BBcRelation or/and BBcWitness
+// MakeTransaction is a utility for making simple BBcTransaction object with BBcEvent, BBcRelation or/and BBcWitness
 func MakeTransaction(eventNum, relationNum int, witness bool, idLength int) *BBcTransaction {
 	txobj := BBcTransaction{IDLength: idLength}
 	for i := 0; i < eventNum; i++ {
@@ -132,14 +132,14 @@ func MakeTransaction(eventNum, relationNum int, witness bool, idLength int) *BBc
 	return &txobj
 }
 
-// Internal function to create a BBcAsset and add it to  BBcRelation object and then a BBcTransaction object
+// addInRelation is an internal function to create a BBcAsset and add it to  BBcRelation object and then a BBcTransaction object
 func addInRelation(transaction *BBcTransaction, relationIdx int, assetGroupID, userID *[]byte) {
 	ast := BBcAsset{}
 	transaction.Relations[relationIdx].Add(assetGroupID, &ast)
 	ast.Add(userID)
 }
 
-// Include a file digest to BBcAsset in BBcRelation and add it to a BBcTransaction object
+// AddRelationAssetFile sets a file digest to BBcAsset in BBcRelation and add it to a BBcTransaction object
 func AddRelationAssetFile(transaction *BBcTransaction, relationIdx int, assetGroupID, userID, assetFile *[]byte) {
 	if transaction == nil {
 		return
@@ -150,7 +150,7 @@ func AddRelationAssetFile(transaction *BBcTransaction, relationIdx int, assetGro
 	}
 }
 
-// Include a string in BBcAsset in BBcRelation and add it to a BBcTransaction object
+// AddRelationAssetBodyString sets a string in BBcAsset in BBcRelation and add it to a BBcTransaction object
 func AddRelationAssetBodyString(transaction *BBcTransaction, relationIdx int, assetGroupID, userID *[]byte, body string) {
 	if transaction == nil {
 		return
@@ -161,7 +161,7 @@ func AddRelationAssetBodyString(transaction *BBcTransaction, relationIdx int, as
 	}
 }
 
-// Include an object (map[string]interface{}) in BBcAsset in BBcRelation, convert the info into msgpack, and add it in a BBcTransaction object
+// AddRelationAssetBodyObject sets an object (map[string]interface{}) in BBcAsset in BBcRelation, convert the info into msgpack, and add it in a BBcTransaction object
 func AddRelationAssetBodyObject(transaction *BBcTransaction, relationIdx int, assetGroupID, userID *[]byte, body interface{}) {
 	if transaction == nil {
 		return
@@ -174,7 +174,7 @@ func AddRelationAssetBodyObject(transaction *BBcTransaction, relationIdx int, as
 	}
 }
 
-// Create and include a BBcPointer object in BBcRelation and then, add it in a BBcTransaction object
+// AddRelationPointer creates and includes a BBcPointer object in BBcRelation and then, add it in a BBcTransaction object
 func AddRelationPointer(transaction *BBcTransaction, relationIdx int, refTransactionID, refAssetID *[]byte) {
 	if transaction == nil {
 		return
@@ -184,14 +184,14 @@ func AddRelationPointer(transaction *BBcTransaction, relationIdx int, refTransac
 	ptr.Add(refTransactionID, refAssetID)
 }
 
-// Create and include a BBcPointer object in BBcRelation
+// AddPointerInRelation creates and includes a BBcPointer object in BBcRelation
 func AddPointerInRelation(relation *BBcRelation, refTransaction *BBcTransaction, refAssetID *[]byte) {
 	ptr := BBcPointer{}
 	relation.AddPointer(&ptr)
 	ptr.Add(&refTransaction.TransactionID, refAssetID)
 }
 
-// Create and add a BBcReference object in a BBcTransaction object
+// AddReference creates and includes a BBcReference object in a BBcTransaction object
 func AddReference(transaction *BBcTransaction, assetGroupID, userID *[]byte, refTransaction *BBcTransaction, eventIdx int) {
 	if transaction == nil || refTransaction == nil {
 		return
@@ -204,14 +204,14 @@ func AddReference(transaction *BBcTransaction, assetGroupID, userID *[]byte, ref
 	ref.Add(assetGroupID, refTransaction, eventIdx)
 }
 
-// Internal function to add a BBcEvent object in a BBcTransaction object
+// addInEvent is an internal function to add a BBcEvent object in a BBcTransaction object
 func addInEvent(transaction *BBcTransaction, eventIdx int, assetGroupID, userID *[]byte) {
 	ast := BBcAsset{}
 	transaction.Events[eventIdx].Add(assetGroupID, &ast)
 	ast.Add(userID)
 }
 
-// Add a file digest to a BBcAsset object in a BBcEvent object and then, add it in a BBcTransaction object
+// AddEventAssetFile sets a file digest to a BBcAsset object in a BBcEvent object and then, add it in a BBcTransaction object
 func AddEventAssetFile(transaction *BBcTransaction, eventIdx int, assetGroupID, userID *[]byte, assetFile *[]byte) {
 	if transaction == nil {
 		return
@@ -222,7 +222,7 @@ func AddEventAssetFile(transaction *BBcTransaction, eventIdx int, assetGroupID, 
 	}
 }
 
-// Add a string to a BBcAsset object in a BBcEvent object and then, add it in a BBcTransaction object
+// AddEventAssetBodyString sets a string to a BBcAsset object in a BBcEvent object and then, add it in a BBcTransaction object
 func AddEventAssetBodyString(transaction *BBcTransaction, eventIdx int, assetGroupID, userID *[]byte, body string) {
 	if transaction == nil {
 		return
@@ -233,7 +233,7 @@ func AddEventAssetBodyString(transaction *BBcTransaction, eventIdx int, assetGro
 	}
 }
 
-// Add an object (map[string]interface{}) to a BBcAsset object in a BBcEvent object and then, add it in a BBcTransaction object
+// AddEventAssetBodyObject sets an object (map[string]interface{}) to a BBcAsset object in a BBcEvent object and then, add it in a BBcTransaction object
 func AddEventAssetBodyObject(transaction *BBcTransaction, eventIdx int, assetGroupID, userID *[]byte, body interface{}) {
 	if transaction == nil {
 		return
@@ -244,7 +244,7 @@ func AddEventAssetBodyObject(transaction *BBcTransaction, eventIdx int, assetGro
 	}
 }
 
-// Utility for making simple BBcTransaction object with BBcRelation with BBcAsset
+// MakeRelationWithAsset is a utility for making simple BBcTransaction object with BBcRelation with BBcAsset
 func MakeRelationWithAsset(assetGroupID, userID *[]byte, assetBodyString string, assetBodyObject interface{}, assetFile *[]byte, idLength int) *BBcRelation {
 	rtn := BBcRelation{IDLength: idLength}
 	ast := BBcAsset{IDLength: idLength}
@@ -261,7 +261,7 @@ func MakeRelationWithAsset(assetGroupID, userID *[]byte, assetBodyString string,
 	return &rtn
 }
 
-// Utility for recovering signature data into BBcSignature object
+// RecoverSignatureObject is a utility for recovering signature data into BBcSignature object
 func RecoverSignatureObject(dat *[]byte) *BBcSignature {
 	sig := BBcSignature{}
 	sig.Unpack(dat)

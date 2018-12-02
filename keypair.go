@@ -25,7 +25,7 @@ import "C"
 import "unsafe"
 
 /*
-This is the KeyPair definition.
+KeyPair definition
 
 A KeyPair object hold a pair of private key and public key.
 This object includes functions for sign and verify a signature. The sign/verify functions is realized by "libbbcsig".
@@ -47,7 +47,7 @@ const (
 	defaultCompressionMode = 4
 )
 
-// Key pair generator
+// GenerateKeypair generates a new Key pair object with new private key and public key
 func GenerateKeypair(curveType int, compressionMode int) KeyPair {
 	pubkey := make([]byte, 100)
 	privkey := make([]byte, 100)
@@ -57,7 +57,7 @@ func GenerateKeypair(curveType int, compressionMode int) KeyPair {
 	return KeyPair{CurveType: curveType, Pubkey: pubkey[:lenPubkey], Privkey: privkey[:lenPrivkey]}
 }
 
-// Output PEM formatted public key
+// ConvertFromPem outputs PEM formatted public key
 func (k *KeyPair) ConvertFromPem(pem string, compressionMode int) {
 	pubkey := make([]byte, 100)
 	privkey := make([]byte, 100)
@@ -109,7 +109,7 @@ func (k *KeyPair) Verify(digest []byte, sig []byte) bool {
 	return result == 1
 }
 
-// Verify a given digest with BBcSignature object
+// VerifyBBcSignature verifies a given digest with BBcSignature object
 func VerifyBBcSignature(digest []byte, sig *BBcSignature) bool {
 	result := C.verify(C.int(sig.KeyType), C.int(len(sig.Pubkey)), (*C.uint8_t)(unsafe.Pointer(&sig.Pubkey[0])),
 		C.int(len(digest)), (*C.uint8_t)(unsafe.Pointer(&digest[0])),
