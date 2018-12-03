@@ -6,6 +6,8 @@ bbclib-go
 [![Coverage Status](https://coveralls.io/repos/github/quvox/bbclib-go/badge.svg?branch=develop)](https://coveralls.io/github/quvox/bbclib-go?branch=develop)
 [![Maintainability](https://api.codeclimate.com/v1/badges/0c523f5a3d71b77aad46/maintainability)](https://codeclimate.com/github/quvox/bbclib-go/maintainability)
 
+This repo is now obsoleted, and move to https://github.com/beyond-blockchain/bbclib-go.git
+
 Golang implementation of bbc1.core.bbclib and bbc1.core.libs modules in https://github.com/beyond-blockchain/bbc1
 
 ### Features
